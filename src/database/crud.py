@@ -43,25 +43,9 @@ class BaseCRUD(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
     def get(self, db: Session, id_obj: int) -> ModelType | None:
         return db.query(self.model).filter(self.model.id == id_obj).first()
 
-    def serialize(self, obj, exclude_fields: list = None) -> dict:
-        res = dict()
-        exclude_fields = exclude_fields or []
-        for key, value in obj.__dict__.items():
-            if key not in exclude_fields:
-                if isinstance(value, InstrumentedList):
-                    res['_'.join([key, 'count'])] = len(value)
-                elif not isinstance(value, InstanceState):
-                    res[key] = str(value)
-        return res
-
-    def to_json(self, obj: ModelType) -> dict:
+    def serialize(self, obj: ModelType) -> dict:
         data = {'id': str(obj.id),
                 'title': obj.title,
-                'description': obj.description}
-        if hasattr(obj, 'submenus_count'):
-            data['submenus_count'] = obj.submenus_count
-        if hasattr(obj, 'dishes_count'):
-            data['dishes_count'] = obj.dishes_count
-        if hasattr(obj, 'price'):
-            data['price'] = str(obj.price)
+                'description': obj.description
+                }
         return data

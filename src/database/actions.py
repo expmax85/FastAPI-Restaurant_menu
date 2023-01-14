@@ -2,8 +2,7 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from src.database.crud import BaseCRUD
-from src.models import schemas
-from src.models.models import Menu, SubMenu, Dish
+from src.models import schemas, Menu, SubMenu, Dish
 
 
 class MenuAction(BaseCRUD[Menu, schemas.MenuCreate, schemas.MenuUpdate]):
@@ -46,13 +45,17 @@ class MenuAction(BaseCRUD[Menu, schemas.MenuCreate, schemas.MenuUpdate]):
             return None
         return queryset
 
-    def serialize(self, obj, exclude_fields: list = None) -> dict:
-        res = super().serialize(obj, exclude_fields)
-        if not res.get('submenus_count'):
-            res['submenus_count'] = 0
-        if not res.get('dishes_count'):
-            res['dishes_count'] = 0
-        return res
+    def serialize(self, obj: Menu) -> dict:
+        data = super().serialize(obj)
+        if hasattr(obj, 'submenus_count'):
+            data['submenus_count'] = obj.submenus_count
+        else:
+            data['submenus_count'] = 0
+        if hasattr(obj, 'dishes_count'):
+            data['dishes_count'] = obj.dishes_count
+        else:
+            data['dishes_count'] = 0
+        return data
 
 
 class SubMenuAction(BaseCRUD[SubMenu, schemas.SubMenuCreate, schemas.SubMenuUpdate]):
@@ -76,6 +79,14 @@ class SubMenuAction(BaseCRUD[SubMenu, schemas.SubMenuCreate, schemas.SubMenuUpda
             .filter(self.model.menu_id == menu_id) \
             .group_by(self.model.id) \
             .offset(skip).limit(limit).all()
+
+    def serialize(self, obj: SubMenu) -> dict:
+        data = super().serialize(obj)
+        if hasattr(obj, 'dishes_count'):
+            data['dishes_count'] = obj.dishes_count
+        else:
+            data['dishes_count'] = 0
+        return data
 
 
 class DishAction(BaseCRUD[Dish, schemas.DishCreate, schemas.DishUpdate]):
@@ -101,6 +112,12 @@ class DishAction(BaseCRUD[Dish, schemas.DishCreate, schemas.DishUpdate]):
             .filter(self.model.submenu_id == submenu_id,
                     SubMenu.menu_id == menu_id) \
             .offset(skip).limit(limit).all()
+
+    def serialize(self, obj: Dish) -> dict:
+        data = super().serialize(obj)
+        if hasattr(obj, 'price'):
+            data['price'] = str(obj.price)
+        return data
 
 
 menu_orm = MenuAction()

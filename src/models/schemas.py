@@ -60,7 +60,6 @@ class DishUpdate(DishBase):
 
 class Dish(DishBase):
     id: int
-    submenu_id: int | None = None
 
     class Config:
         orm_mode = True
