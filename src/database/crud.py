@@ -1,8 +1,7 @@
 from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel
 from pydantic.schema import Generic, TypeVar
-from sqlalchemy.orm import Session, InstanceState
-from sqlalchemy.orm.collections import InstrumentedList
+from sqlalchemy.orm import Session
 
 from src.models import Base
 
