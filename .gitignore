@@ -133,5 +133,6 @@ dmypy.json
 # Jetbrains Intellij IDEA
 .idea/
 
-# Исключаем файлы базы данных Postgres
+# Исключаем файлы базы данных
 /data/
+.db

@@ -1,10 +1,6 @@
 from fastapi import FastAPI
 
-from src.database import engine
-from src.models import Base
 from src.routes import menus, submenus, dishes
-
-Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
