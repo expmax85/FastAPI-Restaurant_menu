@@ -31,7 +31,7 @@ cd Test_app
 pip install -r requirements.txt
 ```
 
-- Подключить базу данных, заполнив файл .env.
+- Подключить базу данных, заполнить файл .env.
 
 - Выполнить миграции командой:
 ```bash
@@ -40,5 +40,5 @@ alembic upgrade head
 
 - Запустить проект командой:
  ```bash
-uvicorn src.main.app --reload
+uvicorn src.main:app --reload
 ```
