@@ -30,7 +30,7 @@ class SubMenu(Base):
     id = Column('id', Integer, primary_key=True)
     title = Column('title', String(80), nullable=False)
     description = Column('description', String(200), nullable=False, default='test description')
-    menu_id = Column('Menu', ForeignKey('menus.id'))
+    menu_id = Column('Menu', ForeignKey('menus.id', ondelete='CASCADE'))
 
     menus = relationship('Menu', back_populates='submenus')
     dishes = relationship('Dish', back_populates='submenus', cascade='all', lazy='joined')
@@ -46,7 +46,7 @@ class Dish(Base):
     title = Column('title', String(80), nullable=False)
     description = Column('description', String(200), nullable=False, default='test description')
     price = Column('price', Float(precision=2), nullable=False)
-    submenu_id = Column('SubMenu', ForeignKey('submenus.id'))
+    submenu_id = Column('SubMenu', ForeignKey('submenus.id', ondelete='CASCADE'))
 
     submenus = relationship('SubMenu', back_populates='dishes')
 
