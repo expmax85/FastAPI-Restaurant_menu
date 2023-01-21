@@ -46,13 +46,13 @@ uvicorn src.main:app --reload
 # Docker
 # Запуск приложения через докер
 ```bash
-docker compose build
-docker compose up
+docker compose -f docker-compose.yml --env-file ./conf/.env.main build
+docker compose -f docker-compose.yml --env-file ./conf/.env.main up -d
 ```
 
 ## Запуск приложения в режиме тестирования
 ```bash
-docker compose -f docker-compose-test.yml build
-docker compose -f docker-compose-test.yml up
+docker compose -f docker-compose-test.yml --env-file ./conf/.env.test build
+docker compose -f docker-compose-test.yml --env-file ./conf/.env.test up
 ```
 

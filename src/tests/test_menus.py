@@ -19,7 +19,7 @@ def test_get_menu(test_app, menu):
 
 
 def test_get_menus(test_app, menu):
-    response = test_app.get(f"/api/v1/menus")
+    response = test_app.get("/api/v1/menus")
     assert response.status_code == 200, response.text
     data = response.json()
     assert len(data) == 1
@@ -27,7 +27,7 @@ def test_get_menus(test_app, menu):
 
 def test_update_menu(test_app, menu):
     response = test_app.patch(f"/api/v1/menus/{menu}",
-                            json={"title": "Updated menu 1", "description": "Updated menu descr 1"})
+                              json={"title": "Updated menu 1", "description": "Updated menu descr 1"})
     assert response.status_code == 200, response.text
     data = response.json()
     assert data["title"] == "Updated menu 1"

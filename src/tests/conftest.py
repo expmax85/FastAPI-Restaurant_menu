@@ -12,7 +12,7 @@ from src.models.models import Session
 
 @pytest.fixture(scope="session")
 def db_engine():
-    engine = create_engine(settings.SQLALCHEMY_DATABASE_URL)
+    engine = create_engine(settings.TEST_DATABASE_URL)
     yield engine
 
 
