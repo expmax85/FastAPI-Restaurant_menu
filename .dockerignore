@@ -1,0 +1,34 @@
+# Common
+README.md
+CHANGELOG.md
+docker-compose.yml
+Dockerfile
+
+# git
+.git
+.gitattributes
+.gitignore
+
+# JetBrains
+.idea
+
+# Python
+app/__pycache__/
+app/*/__pycache__/
+app/*/*/__pycache__/
+app/*/*/*/__pycache__/
+*.env
+.venv/
+venv/
+
+# tests
+.pytest_cache/
+
+# alembic migrations
+migrations/
+alembic.ini
+
+
+# Local PostgreSQL data
+data/
+conf/

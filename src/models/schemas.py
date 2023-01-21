@@ -11,7 +11,8 @@ class MenuCreate(MenuBase):
 
 
 class MenuUpdate(MenuBase):
-    pass
+    title: str | None
+    description: str | None
 
 
 class Menu(MenuBase):
@@ -33,7 +34,8 @@ class SubMenuCreate(SubMenuBase):
 
 
 class SubMenuUpdate(SubMenuBase):
-    pass
+    title: str | None
+    description: str | None
 
 
 class SubMenu(SubMenuBase):
@@ -55,7 +57,9 @@ class DishCreate(DishBase):
 
 
 class DishUpdate(DishBase):
-    pass
+    title: str | None
+    description: str | None
+    price: float | None
 
 
 class Dish(DishBase):

@@ -9,7 +9,7 @@ from src.models import schemas
 router = APIRouter(tags=["dishes"])
 
 
-@router.post("/api/v1/menus/{menu_id}/submenus/{submenu_id}/dishes", response_model=schemas.Dish)
+@router.post("/menus/{menu_id}/submenus/{submenu_id}/dishes", response_model=schemas.Dish)
 def create_dish(menu_id: int, submenu_id: int, dish: schemas.DishCreate, db: Session = Depends(get_db)):
     if not actions.submenu_orm.check_exist_relates(db, submenu_id, menu_id):
         raise HTTPException(detail="submenu for not found", status_code=404)
@@ -18,7 +18,7 @@ def create_dish(menu_id: int, submenu_id: int, dish: schemas.DishCreate, db: Ses
     return JSONResponse(result, status_code=201)
 
 
-@router.delete("/api/v1/menus/{menu_id}/submenus/{submenu_id}/dishes/{dish_id}")
+@router.delete("/menus/{menu_id}/submenus/{submenu_id}/dishes/{dish_id}")
 def delete_dish(menu_id: int, submenu_id: int, dish_id: int, db: Session = Depends(get_db)):
     if not actions.dish_orm.check_exist_relates(db=db, dish_id=dish_id, submenu_id=submenu_id, menu_id=menu_id):
         raise HTTPException(detail="dish not found", status_code=404)
@@ -26,14 +26,14 @@ def delete_dish(menu_id: int, submenu_id: int, dish_id: int, db: Session = Depen
     return JSONResponse({'status': True, 'message': 'The dish has been deleted'}, status_code=200)
 
 
-@router.get("/api/v1/menus/{menu_id}/submenus/{submenu_id}/dishes", response_model=list[schemas.Dish])
+@router.get("/menus/{menu_id}/submenus/{submenu_id}/dishes", response_model=list[schemas.Dish])
 def get_dishes(menu_id: int, submenu_id: int, skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     dishes = actions.dish_orm.get_all_with_relates(db=db, menu_id=menu_id, submenu_id=submenu_id,
                                                    skip=skip, limit=limit)
     return dishes
 
 
-@router.get("/api/v1/menus/{menu_id}/submenus/{submenu_id}/dishes/{dish_id}", response_model=schemas.Dish)
+@router.get("/menus/{menu_id}/submenus/{submenu_id}/dishes/{dish_id}", response_model=schemas.Dish)
 def get_dish(menu_id: int, submenu_id: int, dish_id: int, db: Session = Depends(get_db)):
     dish = actions.dish_orm.get_with_relates(db=db, menu_id=menu_id, submenu_id=submenu_id, dish_id=dish_id)
     if not dish:
@@ -42,7 +42,7 @@ def get_dish(menu_id: int, submenu_id: int, dish_id: int, db: Session = Depends(
     return JSONResponse(result, status_code=200)
 
 
-@router.patch("/api/v1/menus/{menu_id}/submenus/{submenu_id}/dishes/{dish_id}", response_model=schemas.Dish)
+@router.patch("/menus/{menu_id}/submenus/{submenu_id}/dishes/{dish_id}", response_model=schemas.Dish)
 def update_dish(menu_id: int, submenu_id: int, dish_id: int, dish: schemas.DishUpdate, db: Session = Depends(get_db)):
     if not actions.dish_orm.check_exist_relates(db=db, dish_id=dish_id, menu_id=menu_id, submenu_id=submenu_id):
         raise HTTPException(detail="dish not found", status_code=404)

@@ -1,0 +1,49 @@
+version: "3.9"
+
+services:
+  web_app:
+    container_name: test_app
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      CONFIG_FILE: ".env.test"
+    entrypoint:
+      sh -c "
+      alembic upgrade head &&
+      pytest
+      "
+    volumes:
+      - .:/code
+    ports:
+      - "8000:8000"
+    depends_on:
+      web_db:
+          condition: service_healthy
+    networks:
+      - test_net
+
+  web_db:
+    container_name: test_db
+    image: postgres:10.1-alpine
+    expose:
+      - 5432
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./data/db:/var/lib/postgresql/data
+      - ./init-database.sh:/docker-entrypoint-initdb.d/init-database.sh
+    environment:
+      CONFIG_FILE: ".env.test"
+    networks:
+      - test_net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d test_db"]
+      interval: 5s
+      timeout: 10s
+      retries: 30
+
+
+networks:
+  test_net:
+    name: test_net
