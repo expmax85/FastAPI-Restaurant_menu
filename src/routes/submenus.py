@@ -9,13 +9,21 @@ from src.models import schemas
 router = APIRouter(tags=["submenus"])
 
 
-@router.post("/menus/{menu_id}/submenus", response_model=schemas.SubMenu)
+@router.post("/menus/{menu_id}/submenus", response_model=schemas.SubMenu, responses={201: {
+            "description": "Created",
+            "content": {
+                "application/json": {
+                    "example": {"id": 0, "title": "string", "description": "string",
+                                "dishes_count": 0}
+                }
+            },
+        }})
 def create_submenu(menu_id: int, submenu: schemas.SubMenuCreate, db: Session = Depends(get_db)):
     if not actions.menu_orm.check_exist(db, menu_id):
         raise HTTPException(detail="menu not found", status_code=404)
-    submenu = actions.submenu_orm.create(db=db, obj_in=submenu, menu_id=menu_id)
-    result = actions.submenu_orm.serialize(submenu)
-    return JSONResponse(result, status_code=201)
+    submenu.menu_id = menu_id
+    submenu = actions.submenu_orm.create(db=db, obj_in=submenu)
+    return submenu
 
 
 @router.get('/menus/{menu_id}/submenus/{submenu_id}', response_model=schemas.SubMenu)
@@ -23,7 +31,7 @@ def get_submenu(menu_id: int, submenu_id: int, db: Session = Depends(get_db)):
     submenu = actions.submenu_orm.get_with_relates(db=db, submenu_id=submenu_id, menu_id=menu_id)
     if not submenu:
         raise HTTPException(detail="submenu not found", status_code=404)
-    return JSONResponse(actions.submenu_orm.serialize(submenu), status_code=200)
+    return submenu
 
 
 @router.get('/menus/{menu_id}/submenus', response_model=list[schemas.SubMenu])
@@ -46,4 +54,4 @@ def update_submenu(menu_id: int, submenu_id: int, submenu: schemas.SubMenuUpdate
         raise HTTPException(detail="submenu not found", status_code=404)
     actions.submenu_orm.update(db=db, id_obj=submenu_id, obj_data=submenu)
     submenu = actions.submenu_orm.get_with_relates(db=db, submenu_id=submenu_id, menu_id=menu_id)
-    return JSONResponse(actions.submenu_orm.serialize(submenu), status_code=200)
+    return submenu

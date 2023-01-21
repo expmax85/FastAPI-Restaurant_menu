@@ -22,4 +22,5 @@ class Settings(BaseSettings):
 
 settings = Settings()
 
-SQLALCHEMY_DATABASE_URL = f"postgresql://{settings.DB_USER}:{settings.DB_PASSWORD}@{settings.DB_HOST}/{settings.DB_NAME}"
+SQLALCHEMY_DATABASE_URL = f'sqlite:///{settings.DB_NAME}'
+# SQLALCHEMY_DATABASE_URL = f"postgresql://{settings.DB_USER}:{settings.DB_PASSWORD}@{settings.DB_HOST}/{settings.DB_NAME}"

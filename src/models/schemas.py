@@ -30,7 +30,7 @@ class SubMenuBase(BaseModel):
 
 
 class SubMenuCreate(SubMenuBase):
-    pass
+    menu_id: int
 
 
 class SubMenuUpdate(SubMenuBase):
@@ -53,7 +53,7 @@ class DishBase(BaseModel):
 
 
 class DishCreate(DishBase):
-    pass
+    submenu_id: int
 
 
 class DishUpdate(DishBase):

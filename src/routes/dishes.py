@@ -9,13 +9,22 @@ from src.models import schemas
 router = APIRouter(tags=["dishes"])
 
 
-@router.post("/menus/{menu_id}/submenus/{submenu_id}/dishes", response_model=schemas.Dish)
+@router.post("/menus/{menu_id}/submenus/{submenu_id}/dishes", response_model=schemas.Dish, responses={201: {
+            "description": "Created",
+            "content": {
+                "application/json": {
+                    "example": {"id": 0, "title": "string", "description": "string",
+                                "price": 0.0}
+                }
+            },
+        }}, response_model_exclude={'submenu_id'})
 def create_dish(menu_id: int, submenu_id: int, dish: schemas.DishCreate, db: Session = Depends(get_db)):
     if not actions.submenu_orm.check_exist_relates(db, submenu_id, menu_id):
         raise HTTPException(detail="submenu for not found", status_code=404)
-    dish = actions.dish_orm.create(db=db, obj_in=dish, submenu_id=submenu_id)
+    dish.submenu_id = submenu_id
+    dish = actions.dish_orm.create(db=db, obj_in=dish)
     result = actions.dish_orm.serialize(dish)
-    return JSONResponse(result, status_code=201)
+    return dish#JSONResponse(result, status_code=201)
 
 
 @router.delete("/menus/{menu_id}/submenus/{submenu_id}/dishes/{dish_id}")
