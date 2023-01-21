@@ -25,13 +25,13 @@ class BaseCRUD(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         db.refresh(db_obj)
         return db_obj
 
-    def remove(self, db: Session, id_obj: int) -> bool:
+    def remove(self, db: Session, id_obj: str) -> bool:
         obj = db.query(self.model).get(id_obj)
         db.delete(obj)
         db.commit()
         return True
 
-    def update(self, db: Session, id_obj: int, obj_data: UpdateSchemaType) -> int:
+    def update(self, db: Session, id_obj: str, obj_data: UpdateSchemaType) -> int:
         updated = db.query(self.model).filter(self.model.id == id_obj).update(obj_data.dict(exclude_unset=True))
         db.commit()
         return updated
@@ -39,12 +39,5 @@ class BaseCRUD(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
     def get_all(self, db: Session, skip: int = 0, limit: int = 100) -> list[tuple]:
         return db.query(self.model).offset(skip).limit(limit).all()
 
-    def get(self, db: Session, id_obj: int) -> ModelType | None:
+    def get(self, db: Session, id_obj: str) -> ModelType | None:
         return db.query(self.model).filter(self.model.id == id_obj).first()
-
-    def serialize(self, obj: ModelType) -> dict:
-        data = {'id': str(obj.id),
-                'title': obj.title,
-                'description': obj.description
-                }
-        return data

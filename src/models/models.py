@@ -1,5 +1,7 @@
-from sqlalchemy import create_engine, Column, \
-    Integer, String, Float, ForeignKey
+import uuid
+
+from sqlalchemy import create_engine, Column, String, Float, ForeignKey
+from sqlalchemy_utils import UUIDType
 from sqlalchemy.orm import sessionmaker, declarative_base, relationship
 
 from src import config as settings
@@ -14,7 +16,7 @@ Base = declarative_base(bind=engine)
 class Menu(Base):
     __tablename__ = 'menus'
 
-    id = Column('id', Integer, primary_key=True)
+    id = Column('id', UUIDType(binary=False), primary_key=True, default=uuid.uuid4)
     title = Column('title', String(80), nullable=False)
     description = Column('description', String(200), nullable=False, default='test description')
 
@@ -27,7 +29,7 @@ class Menu(Base):
 class SubMenu(Base):
     __tablename__ = 'submenus'
 
-    id = Column('id', Integer, primary_key=True)
+    id = Column('id', UUIDType(binary=False), primary_key=True, default=uuid.uuid4)
     title = Column('title', String(80), nullable=False)
     description = Column('description', String(200), nullable=False, default='test description')
     menu_id = Column('Menu', ForeignKey('menus.id', ondelete='CASCADE'))
@@ -42,7 +44,7 @@ class SubMenu(Base):
 class Dish(Base):
     __tablename__ = 'dishes'
 
-    id = Column('id', Integer, primary_key=True)
+    id = Column('id', UUIDType(binary=False), primary_key=True, default=uuid.uuid4)
     title = Column('title', String(80), nullable=False)
     description = Column('description', String(200), nullable=False, default='test description')
     price = Column('price', Float(precision=2), nullable=False)

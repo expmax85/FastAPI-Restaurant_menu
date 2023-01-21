@@ -15,6 +15,7 @@ class Settings(BaseSettings):
     DB_USER: str
     DB_PASSWORD: str
     DB_PORT: int
+    TEST_DB_NAME: str
 
     class Config:
         env_file = env_path
@@ -22,5 +23,6 @@ class Settings(BaseSettings):
 
 settings = Settings()
 
-SQLALCHEMY_DATABASE_URL = f'sqlite:///{settings.DB_NAME}'
-# SQLALCHEMY_DATABASE_URL = f"postgresql://{settings.DB_USER}:{settings.DB_PASSWORD}@{settings.DB_HOST}/{settings.DB_NAME}"
+_DATABASE_URL = f"postgresql://{settings.DB_USER}:{settings.DB_PASSWORD}@{settings.DB_HOST}"
+SQLALCHEMY_DATABASE_URL = "/".join([_DATABASE_URL, settings.DB_NAME])
+TEST_DATABASE_URL = "/".join([_DATABASE_URL, settings.TEST_DB_NAME])

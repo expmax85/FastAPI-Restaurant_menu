@@ -1,4 +1,5 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, validator
+from pydantic.schema import UUID
 
 
 class MenuBase(BaseModel):
@@ -16,12 +17,16 @@ class MenuUpdate(MenuBase):
 
 
 class Menu(MenuBase):
-    id: int
+    id: UUID
     submenus_count: int | None = 0
     dishes_count: int | None = 0
 
     class Config:
         orm_mode = True
+
+    @validator('id')
+    def id_to_str(cls, i):
+        return str(i)
 
 
 class SubMenuBase(BaseModel):
@@ -30,7 +35,7 @@ class SubMenuBase(BaseModel):
 
 
 class SubMenuCreate(SubMenuBase):
-    menu_id: int
+    pass
 
 
 class SubMenuUpdate(SubMenuBase):
@@ -39,7 +44,7 @@ class SubMenuUpdate(SubMenuBase):
 
 
 class SubMenu(SubMenuBase):
-    id: int
+    id: UUID
     dishes_count: int | None = 0
 
     class Config:
@@ -51,9 +56,13 @@ class DishBase(BaseModel):
     description: str
     price: float
 
+    @validator('price')
+    def id_to_str(cls, price):
+        return str(price)
+
 
 class DishCreate(DishBase):
-    submenu_id: int
+    pass
 
 
 class DishUpdate(DishBase):
@@ -63,7 +72,7 @@ class DishUpdate(DishBase):
 
 
 class Dish(DishBase):
-    id: int
+    id: UUID
 
     class Config:
         orm_mode = True
