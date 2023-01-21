@@ -1,15 +1,24 @@
 import pytest
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+
+from src import config as settings
+from src.database import actions
+
+engine = create_engine(
+    settings.SQLALCHEMY_DATABASE_URL, pool_pre_ping=True
+)
+TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
 class TestCase:
 
     @pytest.fixture(scope='class')
     def menu(self, test_app):
-        data = test_app.post(
-            f"api/v1/menus",
-            json={"title": "Test menu 1", "description": "Test menu descr 1"},
-        )
-        return int(data.json()['id'])
+        db_ = TestingSessionLocal()
+        menu = actions.menu_orm.create(db_, {'title': 'Test menu 1', 'description': 'Test description 1'})
+        db_.close()
+        return menu.id
 
     def test_create_submenu(self, test_app, menu):
         response = test_app.post(
@@ -23,7 +32,10 @@ class TestCase:
 
     @pytest.fixture(scope="class")
     def submenu(self):
-        return 1
+        db_ = TestingSessionLocal()
+        submenu = actions.submenu_orm.get_all(db_)[-1]
+        db_.close()
+        return submenu.id
 
     def test_get_submenu(self, test_app, menu, submenu):
         response = test_app.get(f"/api/v1/menus/{menu}/submenus/{submenu}")

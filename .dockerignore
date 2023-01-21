@@ -17,7 +17,7 @@ app/__pycache__/
 app/*/__pycache__/
 app/*/*/__pycache__/
 app/*/*/*/__pycache__/
-.env.template/
+*.env
 .venv/
 venv/
 
@@ -31,3 +31,4 @@ alembic.ini
 
 # Local PostgreSQL data
 data/
+conf/

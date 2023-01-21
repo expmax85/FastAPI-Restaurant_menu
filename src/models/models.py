@@ -2,7 +2,7 @@ from sqlalchemy import create_engine, Column, \
     Integer, String, Float, ForeignKey
 from sqlalchemy.orm import sessionmaker, declarative_base, relationship
 
-from src.config import settings
+from src import config as settings
 
 engine = create_engine(settings.SQLALCHEMY_DATABASE_URL)
 Session = sessionmaker(bind=engine)

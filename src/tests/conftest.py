@@ -4,13 +4,13 @@ from sqlalchemy.orm import sessionmaker
 
 from starlette.testclient import TestClient
 
-from src.config import settings
+from src import config as settings
 from src.database import get_db
 from src.main import app
 
 
 engine = create_engine(
-    settings.SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
+    settings.SQLALCHEMY_DATABASE_URL, pool_pre_ping=True
 )
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 

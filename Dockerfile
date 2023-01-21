@@ -10,6 +10,3 @@ COPY ./requirements.txt /code/
 RUN pip install --upgrade pip && pip install -r requirements.txt --no-cache-dir
 
 COPY . /code
-
-CMD ["alembic", "upgrade", "head"]
-CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--reload"]
