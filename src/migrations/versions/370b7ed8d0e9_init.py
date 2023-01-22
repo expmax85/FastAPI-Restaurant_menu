@@ -1,17 +1,17 @@
-"""initial
+"""init
 
-Revision ID: 4cce1e4306ab
-Revises: 
-Create Date: 2023-01-22 01:40:46.435624
+Revision ID: 370b7ed8d0e9
+Revises:
+Create Date: 2023-01-22 11:56:39.988769
 
 """
-import sqlalchemy_utils as su
 from alembic import op
 import sqlalchemy as sa
+import sqlalchemy_utils as su
 
 
 # revision identifiers, used by Alembic.
-revision = '4cce1e4306ab'
+revision = '370b7ed8d0e9'
 down_revision = None
 branch_labels = None
 depends_on = None

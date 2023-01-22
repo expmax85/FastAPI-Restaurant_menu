@@ -28,7 +28,11 @@ venv/
 migrations/
 alembic.ini
 
-
 # Local PostgreSQL data
 data/
+
+# configs
 conf/
+
+# flake8 configs
+tox.ini

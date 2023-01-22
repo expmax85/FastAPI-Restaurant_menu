@@ -1,16 +1,10 @@
 import uuid
 
-from sqlalchemy import create_engine, Column, String, Float, ForeignKey
+from sqlalchemy import  Column, String, Float, ForeignKey
 from sqlalchemy_utils import UUIDType
-from sqlalchemy.orm import sessionmaker, declarative_base, relationship
+from sqlalchemy.orm import relationship
 
-from src import config as settings
-
-engine = create_engine(settings.SQLALCHEMY_DATABASE_URL)
-Session = sessionmaker(bind=engine)
-session = Session()
-
-Base = declarative_base(bind=engine)
+from src.database import Base
 
 
 class Menu(Base):

@@ -24,7 +24,7 @@ class Menu(MenuBase):
     class Config:
         orm_mode = True
 
-    @validator('id')
+    @validator('id', check_fields=False)
     def id_to_str(cls, i):
         return str(i)
 
@@ -50,15 +50,15 @@ class SubMenu(SubMenuBase):
     class Config:
         orm_mode = True
 
+    @validator('id', check_fields=False)
+    def id_to_str(cls, i):
+        return str(i)
+
 
 class DishBase(BaseModel):
     title: str
     description: str
     price: float
-
-    @validator('price')
-    def id_to_str(cls, price):
-        return str(price)
 
 
 class DishCreate(DishBase):
@@ -76,3 +76,13 @@ class Dish(DishBase):
 
     class Config:
         orm_mode = True
+
+    @validator('id', check_fields=False)
+    def id_to_str(cls, i):
+        return str(i)
+
+    @validator('price', check_fields=False)
+    def price_to_str(cls, price):
+        return str(price)
+
+

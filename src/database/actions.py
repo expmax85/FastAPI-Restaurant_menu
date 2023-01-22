@@ -1,5 +1,5 @@
-from sqlalchemy import func
-from sqlalchemy.orm import Session
+from sqlalchemy import func, select, exists
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.database.crud import BaseCRUD
 from src.models import schemas, Menu, SubMenu, Dish
@@ -8,90 +8,106 @@ from src.models import schemas, Menu, SubMenu, Dish
 class MenuAction(BaseCRUD[Menu, schemas.MenuCreate, schemas.MenuUpdate]):
     model = Menu
 
-    def check_exist(self, db: Session, menu_id: str) -> bool:
-        return db.query(db.query(self.model).filter(self.model.id == menu_id).exists()).scalar()
+    async def check_exist(self, db: AsyncSession, menu_id: str) -> bool:
+        result = await db.execute(exists(self.model).where(self.model.id == menu_id).select())
+        if result.scalars().first():
+            return True
+        return False
 
-    def _get_subquery_dishes(self, db: Session):
-        return db.query(SubMenu.menu_id.label('menu_id'),
-                        func.coalesce(func.count(SubMenu.dishes), 0).label('dishes')) \
+    def _get_subquery_dishes(self):
+        return select(SubMenu.menu_id.label('menu_id'),
+                      func.coalesce(func.count(SubMenu.dishes), 0).label('dishes')) \
             .outerjoin(Dish) \
             .group_by(SubMenu.menu_id) \
             .subquery()
 
-    def get_all_with_relates(self, db: Session, skip: int = 0, limit: int = 100) -> list[tuple]:
-        sq = self._get_subquery_dishes(db)
-        queryset = db.query(self.model.id, self.model.title, self.model.description,
-                            func.count(self.model.submenus).label('submenus_count'),
-                            func.coalesce(sq.c.dishes, 0).label('dishes_count')) \
+    def _query_for_get(self):
+        sq = self._get_subquery_dishes()
+        return select(self.model.id, self.model.title, self.model.description,
+                      func.count(self.model.submenus).label('submenus_count'),
+                      func.coalesce(sq.c.dishes, 0).label('dishes_count')) \
             .outerjoin(SubMenu, SubMenu.menu_id == self.model.id) \
             .outerjoin(sq, sq.c.menu_id == self.model.id) \
-            .group_by(self.model.id, sq.c.dishes) \
-            .offset(skip) \
-            .limit(limit) \
-            .all()
-        return queryset
+            .group_by(self.model.id, sq.c.dishes)
 
-    def get_with_relates(self, db: Session, menu_id: str) -> tuple | None:
-        sq = self._get_subquery_dishes(db)
-        queryset = db.query(self.model.id, self.model.title, self.model.description,
-                            func.count(self.model.submenus).label('submenus_count'),
-                            func.coalesce(sq.c.dishes, 0).label('dishes_count')) \
-            .outerjoin(SubMenu, SubMenu.menu_id == self.model.id) \
-            .outerjoin(sq, sq.c.menu_id == self.model.id) \
-            .group_by(self.model.id, sq.c.dishes) \
-            .filter(self.model.id == menu_id) \
-            .first()
-        if not queryset or not any(queryset):
-            return None
-        return queryset
+    async def get_all_with_relates(self, db: AsyncSession, skip: int = 0, limit: int = 100) -> list[tuple]:
+        queryset = self._query_for_get()
+        result = await db.execute(queryset.offset(skip).limit(limit))
+        return result.all()
+
+    async def get_with_relates(self, db: AsyncSession, menu_id: str) -> tuple | None:
+        queryset = self._query_for_get()
+        result = await db.execute(queryset.filter(self.model.id == menu_id))
+        await db.commit()
+        return result.first()
 
 
 class SubMenuAction(BaseCRUD[SubMenu, schemas.SubMenuCreate, schemas.SubMenuUpdate]):
     model = SubMenu
 
-    def check_exist_relates(self, db: Session, submenu_id: str, menu_id: str) -> bool:
-        return db.query(
-            db.query(self.model).filter(self.model.id == submenu_id, self.model.menu_id == menu_id).exists()).scalar()
+    async def check_exist(self, db: AsyncSession, submenu_id: str, menu_id: str, with_relates: bool = False) -> bool:
+        if with_relates:
+            result = await db.execute(exists(self.model).where(self.model.id == submenu_id,
+                                                               self.model.menu_id == menu_id).select())
+        else:
+            result = await db.execute(exists(self.model).where(self.model.id == submenu_id).select())
+        if result.scalars().first():
+            return True
+        return False
 
-    def get_with_relates(self, db: Session, submenu_id: str, menu_id: str) -> tuple:
-        return db.query(self.model.id, self.model.title, self.model.description,
-                        func.coalesce(func.count(Dish.id), 0).label('dishes_count')) \
-            .outerjoin(Dish, self.model.id == Dish.submenu_id) \
-            .filter(self.model.id == submenu_id, self.model.menu_id == menu_id) \
-            .group_by(self.model.id).first()
+    def _query_for_get(self, menu_id: str):
+        return select(self.model.id, self.model.title, self.model.description,
+                      func.coalesce(func.count(Dish.id), 0).label('dishes_count'))\
+            .outerjoin(Dish, self.model.id == Dish.submenu_id)\
+            .group_by(self.model.id)\
+            .filter(self.model.menu_id == menu_id)
 
-    def get_all_with_relates(self, db: Session, menu_id: str, skip: int = 0, limit: int = 100) -> list[tuple]:
-        return db.query(self.model.id, self.model.title, self.model.description,
-                        func.coalesce(func.count(Dish.id), 0).label('dishes_count')) \
-            .outerjoin(Dish, self.model.id == Dish.submenu_id) \
-            .filter(self.model.menu_id == menu_id) \
-            .group_by(self.model.id) \
-            .offset(skip).limit(limit).all()
+    async def get_with_relates(self, db: AsyncSession, submenu_id: str, menu_id: str) -> tuple:
+        queryset = self._query_for_get(menu_id)
+        result = await db.execute(queryset.filter(self.model.id == submenu_id))
+        return result.first()
+
+    async def get_all_with_relates(self, db: AsyncSession, menu_id: str, skip: int = 0, limit: int = 100) -> list[tuple]:
+        queryset = self._query_for_get(menu_id)
+        result = await db.execute(queryset.offset(skip).limit(limit))
+        return result.all()
 
 
 class DishAction(BaseCRUD[Dish, schemas.DishCreate, schemas.DishUpdate]):
     model = Dish
 
-    def check_exist_relates(self, db: Session, submenu_id, menu_id: str, dish_id) -> bool:
-        return db.query(db.query(self.model)
-                        .join(SubMenu, SubMenu.id == self.model.submenu_id)
-                        .filter(self.model.id == dish_id,
-                                SubMenu.id == submenu_id,
-                                SubMenu.menu_id == menu_id)
-                        .exists()).scalar()
+    async def check_exist(self, db: AsyncSession, submenu_id: str, menu_id: str, dish_id: str, with_relates: bool = False) -> bool:
+        if with_relates:
+            pre_check = await db.execute(exists(self.model).where(self.model.id == submenu_id,
+                                                                  self.model.menu_id == menu_id).select())
+            if not pre_check.scalars().first():
+                return False
+            result = await db.execute(select(exists(self.model)
+                                      .where(self.model.id == dish_id,
+                                             self.model.submenu_id == submenu_id))
+                                      .select())
+        else:
+            result = await db.execute(exists(self.model).where(self.model.id == dish_id).select())
+        if result.scalars().first():
+            return True
+        return False
 
-    def get_with_relates(self, db: Session, dish_id: int, submenu_id: int, menu_id: str) -> Dish:
-        return db.query(self.model).join(SubMenu, SubMenu.id == self.model.submenu_id) \
-            .filter(self.model.id == dish_id,
-                    self.model.submenu_id == submenu_id,
-                    SubMenu.menu_id == menu_id) \
-            .first()
+    def _query_for_get(self, menu_id: str, submenu_id: str):
+        return select(self.model).join(SubMenu, SubMenu.id == self.model.submenu_id)\
+                                .filter(self.model.submenu_id == submenu_id,
+                                        SubMenu.menu_id == menu_id)
 
-    def get_all_with_relates(self, db: Session, menu_id: str, submenu_id: int, skip: int, limit: int) -> list[Dish]:
-        return db.query(self.model).join(SubMenu, SubMenu.id == self.model.submenu_id) \
-            .filter(self.model.submenu_id == submenu_id,
-                    SubMenu.menu_id == menu_id) \
-            .offset(skip).limit(limit).all()
+    async def get_with_relates(self, db: AsyncSession, dish_id: str, submenu_id: str, menu_id: str) -> Dish:
+        queryset = self._query_for_get(menu_id, submenu_id)
+        result = await db.execute(queryset.filter(self.model.id == dish_id))
+        return result.scalars().first()
+
+    async def get_all_with_relates(self, db: AsyncSession, menu_id: str, submenu_id: str, skip: int, limit: int) -> list[Dish]:
+        queryset = self._query_for_get(menu_id, submenu_id)
+        # print(queryset)
+        result = await db.execute(queryset.offset(skip).limit(limit))
+        # print(result.all())
+        return result.scalars().all()
 
 
 menu_orm = MenuAction()

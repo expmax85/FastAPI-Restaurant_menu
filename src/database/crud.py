@@ -1,6 +1,8 @@
 from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel
 from pydantic.schema import Generic, TypeVar
+from sqlalchemy import select, update
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
 from src.models import Base
@@ -17,27 +19,32 @@ class BaseCRUD(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         if not self.model:
             raise AttributeError('Need to define model')
 
-    def create(self, db: Session, obj_in: CreateSchemaType, **kwargs) -> ModelType:
+    async def create(self, db: AsyncSession, obj_in: CreateSchemaType, **kwargs) -> ModelType:
         obj_in_data = jsonable_encoder(obj_in)
         db_obj = self.model(**obj_in_data, **kwargs)
         db.add(db_obj)
-        db.commit()
-        db.refresh(db_obj)
+        await db.commit()
+        await db.refresh(db_obj)
         return db_obj
 
-    def remove(self, db: Session, id_obj: str) -> bool:
-        obj = db.query(self.model).get(id_obj)
-        db.delete(obj)
-        db.commit()
+    async def update(self, db: AsyncSession, id_obj: str, obj_data: UpdateSchemaType) -> int:
+        updated = await db.execute(update(self.model).filter(self.model.id == id_obj)
+                                   .values(**obj_data.dict(exclude_unset=True))
+                                   .returning(self.model))
+        await db.commit()
+        return updated.fetchone()
+
+    async def remove(self, db: AsyncSession, id_obj: str) -> bool:
+        obj = await db.execute(select(self.model).filter(self.model.id == id_obj))
+        result = obj.scalars().first()
+        await db.delete(result)
+        await db.commit()
         return True
 
-    def update(self, db: Session, id_obj: str, obj_data: UpdateSchemaType) -> int:
-        updated = db.query(self.model).filter(self.model.id == id_obj).update(obj_data.dict(exclude_unset=True))
-        db.commit()
-        return updated
+    async def get_all(self, db: AsyncSession, skip: int = 0, limit: int = 100) -> list[tuple]:
+        result = await db.execute(select(self.model).offset(skip).limit(limit))
+        await db.commit()
+        return result.scalars().all()
 
-    def get_all(self, db: Session, skip: int = 0, limit: int = 100) -> list[tuple]:
-        return db.query(self.model).offset(skip).limit(limit).all()
-
-    def get(self, db: Session, id_obj: str) -> ModelType | None:
-        return db.query(self.model).filter(self.model.id == id_obj).first()
+    async def get(self, db: Session, id_obj: str) -> ModelType | None:
+        return db.execute(select(self.model).filter(self.model.id == id_obj)).scalars().first()

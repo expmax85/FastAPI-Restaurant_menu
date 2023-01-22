@@ -9,3 +9,4 @@ SQLAlchemy==1.4.46
 sqlalchemy-utils==0.39.0
 uvicorn==0.20.0
 httpx==0.23.3
+asyncpg==0.27.0
