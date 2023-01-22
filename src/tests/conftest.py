@@ -1,5 +1,6 @@
 import pytest
 from sqlalchemy import create_engine
+from sqlalchemy.orm import Session
 
 from starlette.testclient import TestClient
 
@@ -7,7 +8,6 @@ from src import config as settings
 from src.database import get_db, actions
 from src.main import app
 from src.models import schemas
-from src.models.models import Session
 
 
 @pytest.fixture(scope="session")
