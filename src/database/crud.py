@@ -43,7 +43,6 @@ class BaseCRUD(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
 
     async def get_all(self, db: AsyncSession, skip: int = 0, limit: int = 100) -> list[tuple]:
         result = await db.execute(select(self.model).offset(skip).limit(limit))
-        await db.commit()
         return result.scalars().all()
 
     async def get(self, db: AsyncSession, id_obj: str) -> ModelType | None:
