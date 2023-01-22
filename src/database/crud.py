@@ -3,7 +3,6 @@ from pydantic import BaseModel
 from pydantic.schema import Generic, TypeVar
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import Session
 
 from src.models import Base
 
@@ -28,8 +27,9 @@ class BaseCRUD(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         return db_obj
 
     async def update(self, db: AsyncSession, id_obj: str, obj_data: UpdateSchemaType) -> int:
+        obj_in_data = jsonable_encoder(obj_data)
         updated = await db.execute(update(self.model).filter(self.model.id == id_obj)
-                                   .values(**obj_data.dict(exclude_unset=True))
+                                   .values(**obj_in_data)
                                    .returning(self.model))
         await db.commit()
         return updated.fetchone()
@@ -46,5 +46,6 @@ class BaseCRUD(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         await db.commit()
         return result.scalars().all()
 
-    async def get(self, db: Session, id_obj: str) -> ModelType | None:
-        return db.execute(select(self.model).filter(self.model.id == id_obj)).scalars().first()
+    async def get(self, db: AsyncSession, id_obj: str) -> ModelType | None:
+        result = await db.execute(select(self.model).filter(self.model.id == id_obj))
+        return result.scalars().first()

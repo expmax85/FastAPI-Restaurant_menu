@@ -104,9 +104,7 @@ class DishAction(BaseCRUD[Dish, schemas.DishCreate, schemas.DishUpdate]):
 
     async def get_all_with_relates(self, db: AsyncSession, menu_id: str, submenu_id: str, skip: int, limit: int) -> list[Dish]:
         queryset = self._query_for_get(menu_id, submenu_id)
-        # print(queryset)
         result = await db.execute(queryset.offset(skip).limit(limit))
-        # print(result.all())
         return result.scalars().all()
 
 

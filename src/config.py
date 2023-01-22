@@ -25,5 +25,4 @@ settings = Settings()
 
 _DATABASE_URL = f"postgresql+asyncpg://{settings.DB_USER}:{settings.DB_PASSWORD}@{settings.DB_HOST}"
 SQLALCHEMY_DATABASE_URL = "/".join([_DATABASE_URL, settings.DB_NAME])
-# SQLALCHEMY_DATABASE_URL = 'sqlite:///test.db'
 TEST_DATABASE_URL = "/".join([_DATABASE_URL, settings.TEST_DB_NAME])

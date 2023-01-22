@@ -84,5 +84,3 @@ class Dish(DishBase):
     @validator('price', check_fields=False)
     def price_to_str(cls, price):
         return str(price)
-
-

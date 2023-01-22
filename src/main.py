@@ -13,6 +13,5 @@ app.include_router(dishes.router, prefix='/api/v1')
 
 
 @app.exception_handler(StatementError)
-async def validation_exception_handler(request, exc):
-    print(exc)
-    return JSONResponse({"detail": "incorrect id format"}, status_code=404)
+async def validation_exception_handler(request, exc: StatementError):
+    return JSONResponse({"detail": "incorrect data"}, status_code=404)
