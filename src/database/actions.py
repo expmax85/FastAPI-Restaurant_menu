@@ -72,7 +72,7 @@ class SubMenuAction(BaseCRUD[SubMenu, schemas.SubMenuCreate, schemas.SubMenuUpda
 class DishAction(BaseCRUD[Dish, schemas.DishCreate, schemas.DishUpdate]):
     model = Dish
 
-    def check_exist_relates(self, db: Session, submenu_id, menu_id: str, dish_id) -> bool:
+    def check_exist_relates(self, db: Session, submenu_id: str, menu_id: str, dish_id) -> bool:
         return db.query(db.query(self.model)
                         .join(SubMenu, SubMenu.id == self.model.submenu_id)
                         .filter(self.model.id == dish_id,
@@ -80,14 +80,14 @@ class DishAction(BaseCRUD[Dish, schemas.DishCreate, schemas.DishUpdate]):
                                 SubMenu.menu_id == menu_id)
                         .exists()).scalar()
 
-    def get_with_relates(self, db: Session, dish_id: int, submenu_id: int, menu_id: str) -> Dish:
+    def get_with_relates(self, db: Session, dish_id: str, submenu_id: str, menu_id: str) -> Dish:
         return db.query(self.model).join(SubMenu, SubMenu.id == self.model.submenu_id) \
             .filter(self.model.id == dish_id,
                     self.model.submenu_id == submenu_id,
                     SubMenu.menu_id == menu_id) \
             .first()
 
-    def get_all_with_relates(self, db: Session, menu_id: str, submenu_id: int, skip: int, limit: int) -> list[Dish]:
+    def get_all_with_relates(self, db: Session, menu_id: str, submenu_id: str, skip: int, limit: int) -> list[Dish]:
         return db.query(self.model).join(SubMenu, SubMenu.id == self.model.submenu_id) \
             .filter(self.model.submenu_id == submenu_id,
                     SubMenu.menu_id == menu_id) \
