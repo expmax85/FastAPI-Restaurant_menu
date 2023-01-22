@@ -38,7 +38,6 @@ class MenuAction(BaseCRUD[Menu, schemas.MenuCreate, schemas.MenuUpdate]):
     async def get_with_relates(self, db: AsyncSession, menu_id: str) -> tuple | None:
         queryset = self._query_for_get()
         result = await db.execute(queryset.filter(self.model.id == menu_id))
-        await db.commit()
         return result.first()
 
 
