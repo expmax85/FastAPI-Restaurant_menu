@@ -43,6 +43,23 @@ services:
       timeout: 10s
       retries: 30
 
+  web_redis:
+    container_name: main_redis
+    image: redis:latest
+    entrypoint:
+      sh -c "redis-server"
+    expose:
+      - 6380
+    ports:
+      - "6380:6380"
+    networks:
+      - web_net
+    healthcheck:
+        test: [ "CMD", "redis-cli","ping" ]
+        interval: 10s
+        timeout: 10s
+        retries: 30
+
 networks:
   web_net:
     name: web_net

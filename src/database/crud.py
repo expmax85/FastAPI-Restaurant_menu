@@ -1,9 +1,11 @@
 from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel
 from pydantic.schema import Generic, TypeVar
-from sqlalchemy import select, update
+from uuid import UUID
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.database import SQLSession
 from src.models import Base
 
 ModelType = TypeVar("ModelType", bound=Base)
@@ -12,39 +14,40 @@ UpdateSchemaType = TypeVar("UpdateSchemaType", bound=BaseModel)
 
 
 class BaseCRUD(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
-    model = None
+    model: ModelType = None
+    db: AsyncSession = SQLSession()
 
     def __init__(self, *args, **kwargs):
         if not self.model:
             raise AttributeError('Need to define model')
 
-    async def create(self, db: AsyncSession, obj_in: CreateSchemaType, **kwargs) -> ModelType:
-        obj_in_data = jsonable_encoder(obj_in)
-        db_obj = self.model(**obj_in_data, **kwargs)
-        db.add(db_obj)
-        await db.commit()
-        await db.refresh(db_obj)
+    async def create(self, obj_in: CreateSchemaType, **kwargs) -> ModelType:
+        async with self.db as db:
+            obj_in_data = jsonable_encoder(obj_in)
+            db_obj = self.model(**obj_in_data, **kwargs)
+            db.session.add(db_obj)
         return db_obj
 
-    async def update(self, db: AsyncSession, id_obj: str, obj_data: UpdateSchemaType) -> int:
-        obj_in_data = jsonable_encoder(obj_data)
-        updated = await db.execute(update(self.model).filter(self.model.id == id_obj)
-                                   .values(**obj_in_data)
-                                   .returning(self.model))
-        await db.commit()
-        return updated.fetchone()
+    async def update(self, id_obj: UUID, obj_data: UpdateSchemaType) -> ModelType | None:
+        if updated_obj := await self.get(id_obj=id_obj):
+            async with self.db as db:
+                for key, value in obj_data.dict(exclude_unset=True).items():
+                    setattr(updated_obj, key, value)
+                db.session.add(updated_obj)
+        return updated_obj
 
-    async def remove(self, db: AsyncSession, id_obj: str) -> bool:
-        obj = await db.execute(select(self.model).filter(self.model.id == id_obj))
-        result = obj.scalars().first()
-        await db.delete(result)
-        await db.commit()
+    async def remove(self, id_obj: UUID) -> bool:
+        if result := await self.get(id_obj=id_obj):
+            async with self.db as db:
+                await db.session.delete(result)
         return True
 
-    async def get_all(self, db: AsyncSession, skip: int = 0, limit: int = 100) -> list[tuple]:
-        result = await db.execute(select(self.model).offset(skip).limit(limit))
+    async def get_all(self, skip: int = 0, limit: int = 100) -> list[ModelType]:
+        async with self.db as db:
+            result = await db.session.execute(select(self.model).offset(skip).limit(limit))
         return result.scalars().all()
 
-    async def get(self, db: AsyncSession, id_obj: str) -> ModelType | None:
-        result = await db.execute(select(self.model).filter(self.model.id == id_obj))
+    async def get(self, id_obj: UUID) -> ModelType | None:
+        async with self.db as db:
+            result = await db.session.execute(select(self.model).filter(self.model.id == id_obj))
         return result.scalars().first()

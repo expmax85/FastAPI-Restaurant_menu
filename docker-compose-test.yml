@@ -25,7 +25,7 @@ services:
 
   web_db:
     container_name: test_db
-    image: postgres:10.1-alpine
+    image: postgres:15.1-alpine
     expose:
       - 5432
     ports:

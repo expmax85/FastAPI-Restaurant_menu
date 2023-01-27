@@ -1,53 +1,45 @@
-from fastapi import Depends, HTTPException, APIRouter, status
-from sqlalchemy.ext.asyncio import AsyncSession
+from uuid import UUID
 
-from src.database import get_db, actions
+from fastapi import HTTPException, APIRouter, status
+
+
+from src.database import actions
 from src.models import schemas
 
 
-router = APIRouter(tags=["Submenus"])
+router = APIRouter(prefix='/menus/{menu_id}/submenus', tags=["Submenus"])
 
 
-@router.post("/menus/{menu_id}/submenus", response_model=schemas.SubMenu, status_code=status.HTTP_201_CREATED)
-async def create_submenu(menu_id: str, submenu: schemas.SubMenuCreate, db: AsyncSession = Depends(get_db)):
-    existed = await actions.menu_orm.check_exist(db, menu_id)
-    if not existed:
-        raise HTTPException(detail="menu not found", status_code=404)
-    result = await actions.submenu_orm.create(db=db, obj_in=submenu, menu_id=menu_id)
-    return result
+@router.post("/", response_model=schemas.SubMenu, status_code=status.HTTP_201_CREATED)
+async def create_submenu(menu_id: UUID, submenu: schemas.SubMenuCreate):
+    if not await actions.menu_orm.check_exist(menu_id):
+        raise HTTPException(detail="menu not exists", status_code=404)
+    return await actions.submenu_orm.create(obj_in=submenu, menu_id=menu_id)
 
 
-@router.get('/menus/{menu_id}/submenus/{submenu_id}', response_model=schemas.SubMenu)
-async def get_submenu(menu_id: str, submenu_id: str, db: AsyncSession = Depends(get_db)):
-    result = await actions.submenu_orm.get_with_relates(db=db, submenu_id=submenu_id, menu_id=menu_id)
-    if not result:
+@router.get('/{submenu_id}', response_model=schemas.SubMenu)
+async def get_submenu(menu_id: UUID, submenu_id: UUID):
+    if not (result := await actions.submenu_orm.get_with_relates(submenu_id=submenu_id, menu_id=menu_id)):
         raise HTTPException(detail="submenu not found", status_code=404)
     return result
 
 
-@router.get('/menus/{menu_id}/submenus', response_model=list[schemas.SubMenu])
-async def get_submenus(menu_id: str, skip: int = 0, limit: int = 100, db: AsyncSession = Depends(get_db)):
-    result = await actions.submenu_orm.get_all_with_relates(db=db, menu_id=menu_id, skip=skip, limit=limit)
-    return result
+@router.get('/', response_model=list[schemas.SubMenu])
+async def get_submenus(menu_id: UUID, skip: int = 0, limit: int = 100):
+    return await actions.submenu_orm.get_all_with_relates(menu_id=menu_id, skip=skip, limit=limit)
 
 
-@router.patch("/menus/{menu_id}/submenus/{submenu_id}", response_model=schemas.SubMenu)
-async def update_submenu(menu_id: str, submenu_id: str, submenu: schemas.SubMenuUpdate,
-                         db: AsyncSession = Depends(get_db)):
-    existed = await actions.submenu_orm.check_exist(db=db, menu_id=menu_id, submenu_id=submenu_id,
-                                                    with_relates=True)
-    if not existed:
+@router.patch("/{submenu_id}", response_model=schemas.SubMenu)
+async def update_submenu(menu_id: UUID, submenu_id: UUID, submenu: schemas.SubMenuUpdate):
+    if not await actions.submenu_orm.check_exist(menu_id=menu_id, submenu_id=submenu_id):
         raise HTTPException(detail="submenu not found", status_code=404)
-    await actions.submenu_orm.update(db=db, id_obj=submenu_id, obj_data=submenu)
-    result = await actions.submenu_orm.get_with_relates(db=db, submenu_id=submenu_id, menu_id=menu_id)
-    return result
+    await actions.submenu_orm.update(id_obj=submenu_id, obj_data=submenu)
+    return await actions.submenu_orm.get_with_relates(submenu_id=submenu_id, menu_id=menu_id)
 
 
-@router.delete("/menus/{menu_id}/submenus/{submenu_id}")
-async def delete_submenu(menu_id: str, submenu_id: str, db: AsyncSession = Depends(get_db)):
-    existed = await actions.submenu_orm.check_exist(db=db, menu_id=menu_id, submenu_id=submenu_id,
-                                                    with_relates=True)
-    if not existed:
+@router.delete("/{submenu_id}", response_model=schemas.Remove)
+async def delete_submenu(menu_id: UUID, submenu_id: UUID):
+    if not await actions.submenu_orm.check_exist(menu_id=menu_id, submenu_id=submenu_id):
         raise HTTPException(detail="submenu not found", status_code=404)
-    await actions.submenu_orm.remove(db=db, id_obj=submenu_id)
-    return {'status': True, 'message': 'The submenu has been deleted'}
+    return {'status': await actions.submenu_orm.remove(id_obj=submenu_id),
+            'message': 'The submenu has been deleted'}

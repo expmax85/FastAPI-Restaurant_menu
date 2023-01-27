@@ -1,65 +1,48 @@
-from fastapi import Depends, HTTPException, APIRouter, status
-from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi import HTTPException, APIRouter, status
+from uuid import UUID
 
-from src.database import get_db, actions
+from src.database import actions
 from src.models import schemas
 
 
-router = APIRouter(tags=["Dishes"])
+router = APIRouter(prefix='/menus/{menu_id}/submenus/{submenu_id}/dishes', tags=["Dishes"])
 
 
-@router.post("/menus/{menu_id}/submenus/{submenu_id}/dishes", response_model=schemas.Dish,
-             status_code=status.HTTP_201_CREATED)
-async def create_dish(menu_id: str, submenu_id: str, dish: schemas.DishCreate,
-                      db: AsyncSession = Depends(get_db)):
-    existed = await actions.submenu_orm.check_exist(db=db, submenu_id=submenu_id, menu_id=menu_id,
-                                                    with_relates=True)
-    if not existed:
+@router.post("/", response_model=schemas.Dish, status_code=status.HTTP_201_CREATED)
+async def create_dish(menu_id: UUID, submenu_id: UUID, dish: schemas.DishCreate):
+    if not await actions.submenu_orm.check_exist(submenu_id=submenu_id, menu_id=menu_id):
         raise HTTPException(detail="submenu for not found", status_code=404)
-    result = await actions.dish_orm.create(db=db, obj_in=dish, submenu_id=submenu_id)
-    return result
+    return await actions.dish_orm.create(obj_in=dish, submenu_id=submenu_id)
 
 
-@router.get("/menus/{menu_id}/submenus/{submenu_id}/dishes", response_model=list[schemas.Dish])
-async def get_dishes(menu_id: str, submenu_id: str, skip: int = 0, limit: int = 100,
-                     db: AsyncSession = Depends(get_db)):
-    result = await actions.dish_orm.get_all_with_relates(db=db, menu_id=menu_id,
-                                                         submenu_id=submenu_id,
-                                                         skip=skip, limit=limit)
-    return result
+@router.get("/", response_model=list[schemas.Dish])
+async def get_dishes(menu_id: UUID, submenu_id: UUID, skip: int = 0, limit: int = 100):
+    return await actions.dish_orm.get_all_with_relates(menu_id=menu_id, submenu_id=submenu_id,
+                                                       skip=skip, limit=limit)
 
 
-@router.get("/menus/{menu_id}/submenus/{submenu_id}/dishes/{dish_id}", response_model=schemas.Dish)
-async def get_dish(menu_id: str, submenu_id: str, dish_id: str,
-                   db: AsyncSession = Depends(get_db)):
-    result = await actions.dish_orm.get_with_relates(db=db, menu_id=menu_id,
-                                                     submenu_id=submenu_id, dish_id=dish_id)
-    if not result:
+@router.get("/{dish_id}", response_model=schemas.Dish)
+async def get_dish(menu_id: UUID, submenu_id: UUID, dish_id: UUID):
+    if not (result := await actions.dish_orm.get_with_relates(menu_id=menu_id, submenu_id=submenu_id,
+                                                              dish_id=dish_id)):
         raise HTTPException(detail="dish not found", status_code=404)
     return result
 
 
-@router.patch("/menus/{menu_id}/submenus/{submenu_id}/dishes/{dish_id}", response_model=schemas.Dish)
-async def update_dish(menu_id: str, submenu_id: str, dish_id: str, dish: schemas.DishUpdate,
-                      db: AsyncSession = Depends(get_db)):
-    existed = await actions.dish_orm.check_exist(db=db, dish_id=dish_id, menu_id=menu_id,
-                                                 submenu_id=submenu_id,
-                                                 with_relates=True)
-    if not existed:
+@router.patch("/{dish_id}", response_model=schemas.Dish)
+async def update_dish(menu_id: UUID, submenu_id: UUID, dish_id: UUID, dish: schemas.DishUpdate):
+    exists_submenu = await actions.submenu_orm.check_exist(menu_id=menu_id, submenu_id=submenu_id)
+    exists_dish = await actions.dish_orm.check_exist(dish_id=dish_id, submenu_id=submenu_id)
+    if not exists_submenu and not exists_dish:
         raise HTTPException(detail="dish not found", status_code=404)
-    await actions.dish_orm.update(db=db, id_obj=dish_id, obj_data=dish)
-    result = await actions.dish_orm.get_with_relates(db=db, dish_id=dish_id, menu_id=menu_id,
-                                                     submenu_id=submenu_id)
-    return result
+    return await actions.dish_orm.update(id_obj=dish_id, obj_data=dish)
 
 
-@router.delete("/menus/{menu_id}/submenus/{submenu_id}/dishes/{dish_id}")
-async def delete_dish(menu_id: str, submenu_id: str, dish_id: str,
-                      db: AsyncSession = Depends(get_db)):
-    existed = await actions.dish_orm.check_exist(db=db, dish_id=dish_id, menu_id=menu_id,
-                                                 submenu_id=submenu_id,
-                                                 with_relates=True)
-    if not existed:
+@router.delete("/{dish_id}", response_model=schemas.Remove)
+async def delete_dish(menu_id: UUID, submenu_id: UUID, dish_id: UUID):
+    exists_submenu = await actions.submenu_orm.check_exist(menu_id=menu_id, submenu_id=submenu_id)
+    exists_dish = await actions.dish_orm.check_exist(dish_id=dish_id, submenu_id=submenu_id)
+    if not exists_submenu and not exists_dish:
         raise HTTPException(detail="dish not found", status_code=404)
-    await actions.dish_orm.remove(db=db, id_obj=dish_id)
+    await actions.dish_orm.remove(id_obj=dish_id)
     return {'status': True, 'message': 'The dish has been deleted'}
