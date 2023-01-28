@@ -51,7 +51,9 @@ services:
     expose:
       - 6380
     ports:
-      - "6380:6380"
+      - "${REDIS_PORT}:6380"
+    environment:
+      CONFIG_FILE: ".env.main"
     networks:
       - web_net
     healthcheck:

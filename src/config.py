@@ -16,6 +16,7 @@ class Settings(BaseSettings):
     DB_PASSWORD: str
     DB_PORT: int
     TEST_DB_NAME: str
+    REDIS_HOST: str
 
     class Config:
         env_file = env_path

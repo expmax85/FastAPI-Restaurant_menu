@@ -25,7 +25,7 @@ services:
 
   web_db:
     container_name: test_db
-    image: postgres:15.1-alpine
+    image: postgres:10.1-alpine
     expose:
       - 5432
     ports:
@@ -43,6 +43,24 @@ services:
       timeout: 10s
       retries: 30
 
+  web_redis:
+    container_name: main_redis
+    image: redis:latest
+    entrypoint:
+      sh -c "redis-server"
+    expose:
+      - 6380
+    ports:
+      - "${REDIS_PORT}:6380"
+    environment:
+      CONFIG_FILE: ".env.main"
+    networks:
+      - test_net
+    healthcheck:
+        test: [ "CMD", "redis-cli","ping" ]
+        interval: 10s
+        timeout: 10s
+        retries: 30
 
 networks:
   test_net:
