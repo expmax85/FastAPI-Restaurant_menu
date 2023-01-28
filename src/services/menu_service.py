@@ -17,12 +17,12 @@ class MenuService:
         values = serialize(menu)
         values['submenus_count'] = 0
         values['dishes_count'] = 0
-        await self.cache.set_cache(values, key=key_gen(menu.id))
+        await self.cache.set_cache(values, key=key_gen(getattr(menu, 'id')))
         await self.cache.delete_cache(key=key_gen(self.all_cache_key))
 
         return menu
 
-    async def get_list(self, skip: int = 0, limit: int = 10) -> list[Menu]:
+    async def get_list(self, skip: int = 0, limit: int = 10) -> list[Menu] | dict:
         menus = await self.cache.get_cache(key=key_gen(self.all_cache_key))
         if not menus:
             menus = await self.menu_orm.get_all_with_relates(skip=skip, limit=limit)
@@ -30,18 +30,18 @@ class MenuService:
             await self.cache.set_cache(data=values, key=key_gen(self.all_cache_key))
         return menus
 
-    async def get(self, menu_id: UUID) -> Menu:
+    async def get(self, menu_id: UUID) -> Menu | dict:
         menu = await self.cache.get_cache(key=key_gen(menu_id))
         if not menu:
             menu = await self.menu_orm.get_with_relates(menu_id=menu_id)
             if not menu:
-                raise HTTPException(detail="menu not found", status_code=404)
+                raise HTTPException(detail='menu not found', status_code=404)
             await self.cache.set_cache(data=serialize(menu), key=key_gen(menu_id))
         return menu
 
-    async def update(self, menu_id: UUID, data: schemas.MenuUpdate) -> Menu:
+    async def update(self, menu_id: UUID, data: schemas.MenuUpdate) -> dict:
         if not await self.menu_orm.check_exist(menu_id=menu_id):
-            raise HTTPException(detail="menu not found", status_code=404)
+            raise HTTPException(detail='menu not found', status_code=404)
         await self.cache.delete_cache(key=key_gen(menu_id))
         await self.menu_orm.update(id_obj=menu_id, obj_data=data)
         return await self.get(menu_id=menu_id)

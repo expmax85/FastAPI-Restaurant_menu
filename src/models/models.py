@@ -17,7 +17,7 @@ class Menu(Base):
     submenus = relationship('SubMenu', back_populates='menus', cascade='all')
 
     def __repr__(self) -> str:
-        return f"{self.title}"
+        return f'{self.title}'
 
 
 class SubMenu(Base):
@@ -32,7 +32,7 @@ class SubMenu(Base):
     dishes = relationship('Dish', back_populates='submenus', cascade='all', lazy='joined')
 
     def __repr__(self) -> str:
-        return f"{self.title}"
+        return f'{self.title}'
 
 
 class Dish(Base):
@@ -47,4 +47,4 @@ class Dish(Base):
     submenus = relationship('SubMenu', back_populates='dishes')
 
     def __repr__(self) -> str:
-        return f"{self.title}"
+        return f'{self.title}'

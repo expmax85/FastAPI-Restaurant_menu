@@ -10,7 +10,7 @@ class RedisCache:
     def __init__(self, redis_url: str) -> None:
         self.redis = aioredis.from_url(redis_url)
 
-    async def set_cache(self, data: dict, key: str) -> None:
+    async def set_cache(self, data: dict | list, key: str) -> None:
         await self.redis.set(json.dumps(data), key)
 
     async def get_cache(self, key: str) -> dict | None:
@@ -23,8 +23,8 @@ class RedisCache:
         await self.redis.delete(key)
 
     async def delete_all(self, key_parent: str) -> None:
-        async for key in self.redis.scan_iter(f"{key_parent}*"):
+        async for key in self.redis.scan_iter(f'{key_parent}*'):
             await self.redis.delete(key)
 
 
-cache = RedisCache(f"redis://{settings.REDIS_HOST}")
+cache = RedisCache(f'redis://{settings.REDIS_HOST}')

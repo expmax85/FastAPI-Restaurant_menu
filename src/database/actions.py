@@ -1,3 +1,5 @@
+# type: ignore
+
 from uuid import UUID
 from sqlalchemy import func, select, exists
 from sqlalchemy.sql import Subquery
@@ -17,16 +19,20 @@ class MenuAction(BaseCRUD[Menu, schemas.MenuCreate, schemas.MenuUpdate]):
         return False
 
     async def _get_subquery_dishes(self) -> 'Subquery':
-        return select(SubMenu.menu_id.label('menu_id'),
-                      func.coalesce(func.count(SubMenu.dishes), 0).label('dishes')) \
+        return select(
+            SubMenu.menu_id.label('menu_id'),
+            func.coalesce(func.count(SubMenu.dishes), 0).label('dishes'),
+        ) \
             .outerjoin(Dish) \
             .group_by(SubMenu.menu_id) \
             .subquery()
 
     async def _query_for_get(self, sq: 'Subquery') -> 'select':
-        return select(self.model.id, self.model.title, self.model.description,
-                      func.count(self.model.submenus).label('submenus_count'),
-                      func.coalesce(sq.c.dishes, 0).label('dishes_count')) \
+        return select(
+            self.model.id, self.model.title, self.model.description,
+            func.count(self.model.submenus).label('submenus_count'),
+            func.coalesce(sq.c.dishes, 0).label('dishes_count'),
+        ) \
             .outerjoin(SubMenu, SubMenu.menu_id == self.model.id) \
             .outerjoin(sq, sq.c.menu_id == self.model.id) \
             .group_by(self.model.id, sq.c.dishes)
@@ -51,16 +57,22 @@ class SubMenuAction(BaseCRUD[SubMenu, schemas.SubMenuCreate, schemas.SubMenuUpda
 
     async def check_exist(self, submenu_id: UUID, menu_id: UUID) -> bool:
         async with self.db as db:
-            result = await db.session.execute(exists(self.model)
-                                              .where(self.model.id == submenu_id,
-                                                     self.model.menu_id == menu_id).select())
+            result = await db.session.execute(
+                exists(self.model)
+                .where(
+                    self.model.id == submenu_id,
+                    self.model.menu_id == menu_id,
+                ).select(),
+            )
         if result.scalars().first():
             return True
         return False
 
     async def _query_for_get(self, menu_id: UUID) -> 'select':
-        return select(self.model.id, self.model.title, self.model.description,
-                      func.coalesce(func.count(Dish.id), 0).label('dishes_count'))\
+        return select(
+            self.model.id, self.model.title, self.model.description,
+            func.coalesce(func.count(Dish.id), 0).label('dishes_count'),
+        )\
             .outerjoin(Dish, self.model.id == Dish.submenu_id)\
             .group_by(self.model.id)\
             .filter(self.model.menu_id == menu_id)
@@ -83,18 +95,26 @@ class DishAction(BaseCRUD[Dish, schemas.DishCreate, schemas.DishUpdate]):
 
     async def check_exist(self, submenu_id: UUID, dish_id: UUID) -> bool:
         async with self.db as db:
-            result = await db.session.execute(select(exists(self.model)
-                                                     .where(self.model.id == dish_id,
-                                                            self.model.submenu_id == submenu_id))
-                                              .select())
+            result = await db.session.execute(
+                select(
+                    exists(self.model)
+                    .where(
+                        self.model.id == dish_id,
+                        self.model.submenu_id == submenu_id,
+                    ),
+                )
+                .select(),
+            )
         if result.scalars().first():
             return True
         return False
 
     async def _query_for_get(self, menu_id: UUID, submenu_id: UUID) -> 'select':
         return select(self.model).join(SubMenu, SubMenu.id == self.model.submenu_id)\
-                                .filter(self.model.submenu_id == submenu_id,
-                                        SubMenu.menu_id == menu_id)
+            .filter(
+                self.model.submenu_id == submenu_id,
+                SubMenu.menu_id == menu_id,
+        )
 
     async def get_with_relates(self, dish_id: UUID, submenu_id: UUID, menu_id: UUID) -> Dish:
         async with self.db as db:

@@ -55,4 +55,3 @@ docker compose -f docker-compose.yml --env-file ./conf/.env.main up -d
 docker compose -f docker-compose-test.yml --env-file ./conf/.env.test build
 docker compose -f docker-compose-test.yml --env-file ./conf/.env.test up
 ```
-

@@ -9,7 +9,7 @@ async_session = sessionmaker(bind=engine, class_=AsyncSession, expire_on_commit=
 Base = declarative_base()
 
 
-class SQLSession(object):
+class SQLSession:
     def __init__(self, session: AsyncSession = async_session()):
         self.session = session
 
