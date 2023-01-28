@@ -75,5 +75,5 @@ class Dish(DishBase):
 
 
 class Remove(BaseModel):
-    result: bool = True
+    status: bool = True
     message: str

@@ -27,18 +27,10 @@ async def get_dish(menu_id: UUID, submenu_id: UUID, dish_id: UUID):
 
 @router.patch("/{dish_id}", response_model=schemas.Dish)
 async def update_dish(menu_id: UUID, submenu_id: UUID, dish_id: UUID, dish: schemas.DishUpdate):
-    exists_submenu = await actions.submenu_orm.check_exist(menu_id=menu_id, submenu_id=submenu_id)
-    exists_dish = await actions.dish_orm.check_exist(dish_id=dish_id, submenu_id=submenu_id)
-    if not exists_submenu and not exists_dish:
-        raise HTTPException(detail="dish not found", status_code=404)
     return await dish_service.update(data=dish, menu_id=menu_id, submenu_id=submenu_id, dish_id=dish_id)
 
 
 @router.delete("/{dish_id}", response_model=schemas.Remove)
 async def delete_dish(menu_id: UUID, submenu_id: UUID, dish_id: UUID):
-    exists_submenu = await actions.submenu_orm.check_exist(menu_id=menu_id, submenu_id=submenu_id)
-    exists_dish = await actions.dish_orm.check_exist(dish_id=dish_id, submenu_id=submenu_id)
-    if not exists_submenu and not exists_dish:
-        raise HTTPException(detail="dish not found", status_code=404)
     await dish_service.remove(menu_id=menu_id, submenu_id=submenu_id, dish_id=dish_id)
     return {'status': True, 'message': 'The dish has been deleted'}

@@ -6,6 +6,7 @@ import pytest_asyncio
 from httpx import AsyncClient
 from src.main import app
 
+
 @pytest.fixture(scope="session")
 def event_loop() -> Generator:
     loop = asyncio.get_event_loop_policy().new_event_loop()
