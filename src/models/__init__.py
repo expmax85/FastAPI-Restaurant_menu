@@ -1,1 +1,1 @@
-from .models import Base, Menu, SubMenu, Dish
+from .models import Base, Dish, Menu, SubMenu

@@ -16,6 +16,7 @@ class Settings(BaseSettings):
     DB_PASSWORD: str
     DB_PORT: int
     TEST_DB_NAME: str
+    REDIS_HOST: str
 
     class Config:
         env_file = env_path
@@ -23,6 +24,6 @@ class Settings(BaseSettings):
 
 settings = Settings()
 
-_DATABASE_URL = f"postgresql://{settings.DB_USER}:{settings.DB_PASSWORD}@{settings.DB_HOST}"
-SQLALCHEMY_DATABASE_URL = "/".join([_DATABASE_URL, settings.DB_NAME])
-TEST_DATABASE_URL = "/".join([_DATABASE_URL, settings.TEST_DB_NAME])
+_DATABASE_URL = f'postgresql+asyncpg://{settings.DB_USER}:{settings.DB_PASSWORD}@{settings.DB_HOST}'
+SQLALCHEMY_DATABASE_URL = '/'.join([_DATABASE_URL, settings.DB_NAME])
+TEST_DATABASE_URL = '/'.join([_DATABASE_URL, settings.TEST_DB_NAME])

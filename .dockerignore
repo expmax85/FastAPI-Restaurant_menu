@@ -17,7 +17,7 @@ app/__pycache__/
 app/*/__pycache__/
 app/*/*/__pycache__/
 app/*/*/*/__pycache__/
-*.env
+.env
 .venv/
 venv/
 
@@ -28,7 +28,11 @@ venv/
 migrations/
 alembic.ini
 
-
 # Local PostgreSQL data
 data/
+
+# configs
 conf/
+
+# flake8 configs
+tox.ini

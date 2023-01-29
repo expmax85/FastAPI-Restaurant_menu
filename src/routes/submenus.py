@@ -1,57 +1,81 @@
-from fastapi import Depends, HTTPException, APIRouter, status
-from sqlalchemy.orm import Session
+from uuid import UUID
 
-from src.database import get_db, actions
+from fastapi import APIRouter
+from fastapi import HTTPException
+from fastapi import status
+
+from src.database import actions
 from src.models import schemas
+from src.services import submenu_service
+
+router = APIRouter(prefix='/menus/{menu_id}/submenus', tags=['Submenus'])
 
 
-router = APIRouter(tags=["Submenus"])
-
-
-@router.post("/menus/{menu_id}/submenus", response_model=schemas.SubMenu, status_code=status.HTTP_201_CREATED,
-             responses={201: {
-                 "description": "Created",
-                 "content": {
-                     "application/json": {
-                         "example": {"id": 0, "title": "string", "description": "string",
-                                     "dishes_count": 0}
-                     }
+@router.post('/', response_model=schemas.SubMenu, status_code=status.HTTP_201_CREATED,
+             responses={
+                 404: {
+                     'model': schemas.MenuError,
+                     'description': 'Menu not exist'
                  }
              }
-             })
-def create_submenu(menu_id: str, submenu: schemas.SubMenuCreate, db: Session = Depends(get_db)):
-    if not actions.menu_orm.check_exist(db, menu_id):
-        raise HTTPException(detail="menu not found", status_code=404)
-    submenu = actions.submenu_orm.create(db=db, obj_in=submenu, menu_id=menu_id)
-    return submenu
+             )
+async def create_submenu(menu_id: UUID, submenu: schemas.SubMenuCreate):
+    """
+    Create submenu  for menu with all the information:
+
+    - **title**: each submenu must have a title
+    - **description**: a long description
+    """
+    if not await actions.menu_orm.check_exist(menu_id):
+        raise HTTPException(detail='menu not found', status_code=404)
+    return await submenu_service.create(data=submenu, menu_id=menu_id)
 
 
-@router.get('/menus/{menu_id}/submenus/{submenu_id}', response_model=schemas.SubMenu)
-def get_submenu(menu_id: str, submenu_id: str, db: Session = Depends(get_db)):
-    submenu = actions.submenu_orm.get_with_relates(db=db, submenu_id=submenu_id, menu_id=menu_id)
-    if not submenu:
-        raise HTTPException(detail="submenu not found", status_code=404)
-    return submenu
+@router.get('/{submenu_id}', response_model=schemas.SubMenu,
+            responses={
+                404: {
+                    'model': schemas.SubMenuError,
+                    'description': 'Submenu not found. Check menu existing.'
+                }
+            }
+            )
+async def get_submenu(menu_id: UUID, submenu_id: UUID):
+    """
+    Get submenu by id, depending from menu
+    """
+    return await submenu_service.get(submenu_id=submenu_id, menu_id=menu_id)
 
 
-@router.get('/menus/{menu_id}/submenus', response_model=list[schemas.SubMenu])
-def get_submenus(menu_id: str, skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    submenus = actions.submenu_orm.get_all_with_relates(db=db, menu_id=menu_id, skip=skip, limit=limit)
-    return submenus
+@router.get('/', response_model=list[schemas.SubMenu])
+async def get_submenus(menu_id: UUID, skip: int = 0, limit: int = 100):
+    """
+    Get all submenus, depending from menu
+    """
+    return await submenu_service.get_list(menu_id=menu_id, skip=skip, limit=limit)
 
 
-@router.delete("/menus/{menu_id}/submenus/{submenu_id}")
-def delete_submenu(menu_id: str, submenu_id: str, db: Session = Depends(get_db)):
-    if not actions.submenu_orm.check_exist_relates(db, submenu_id, menu_id):
-        raise HTTPException(detail="submenu not found", status_code=404)
-    actions.submenu_orm.remove(db=db, id_obj=submenu_id)
-    return {'status': True, 'message': 'The submenu has been deleted'}
+@router.patch('/{submenu_id}', response_model=schemas.SubMenu, responses={
+    404: {
+        'model': schemas.SubMenuError,
+        'description': 'Submenu not found'
+    }
+}
+            )
+async def update_submenu(menu_id: UUID, submenu_id: UUID, submenu: schemas.SubMenuUpdate):
+    """
+    Update submenu
+    """
+    if not await actions.submenu_orm.check_exist(menu_id=menu_id, submenu_id=submenu_id):
+        raise HTTPException(detail='submenu not found', status_code=404)
+    return await submenu_service.update(submenu_id=submenu_id, menu_id=menu_id, data=submenu)
 
 
-@router.patch("/menus/{menu_id}/submenus/{submenu_id}", response_model=schemas.SubMenu)
-def update_submenu(menu_id: str, submenu_id: str, submenu: schemas.SubMenuUpdate, db: Session = Depends(get_db)):
-    if not actions.submenu_orm.check_exist_relates(db, submenu_id, menu_id):
-        raise HTTPException(detail="submenu not found", status_code=404)
-    actions.submenu_orm.update(db=db, id_obj=submenu_id, obj_data=submenu)
-    submenu = actions.submenu_orm.get_with_relates(db=db, submenu_id=submenu_id, menu_id=menu_id)
-    return submenu
+@router.delete('/{submenu_id}', response_model=schemas.Remove)
+async def delete_submenu(menu_id: UUID, submenu_id: UUID):
+    """
+    Remove submenu
+    """
+    return {
+        'status': await submenu_service.remove(menu_id=menu_id, submenu_id=submenu_id),
+        'message': 'The submenu has been deleted',
+    }

@@ -1,16 +1,13 @@
 import uuid
 
-from sqlalchemy import create_engine, Column, String, Float, ForeignKey
+from sqlalchemy import Column
+from sqlalchemy import Float
+from sqlalchemy import ForeignKey
+from sqlalchemy import String
+from sqlalchemy.orm import relationship
 from sqlalchemy_utils import UUIDType
-from sqlalchemy.orm import sessionmaker, declarative_base, relationship
 
-from src import config as settings
-
-engine = create_engine(settings.SQLALCHEMY_DATABASE_URL)
-Session = sessionmaker(bind=engine)
-session = Session()
-
-Base = declarative_base(bind=engine)
+from src.database import Base
 
 
 class Menu(Base):
@@ -23,7 +20,7 @@ class Menu(Base):
     submenus = relationship('SubMenu', back_populates='menus', cascade='all')
 
     def __repr__(self) -> str:
-        return f"{self.title}"
+        return f'{self.title}'
 
 
 class SubMenu(Base):
@@ -38,7 +35,7 @@ class SubMenu(Base):
     dishes = relationship('Dish', back_populates='submenus', cascade='all', lazy='joined')
 
     def __repr__(self) -> str:
-        return f"{self.title}"
+        return f'{self.title}'
 
 
 class Dish(Base):
@@ -53,4 +50,4 @@ class Dish(Base):
     submenus = relationship('SubMenu', back_populates='dishes')
 
     def __repr__(self) -> str:
-        return f"{self.title}"
+        return f'{self.title}'

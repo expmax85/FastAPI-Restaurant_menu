@@ -1,55 +1,67 @@
-from fastapi import Depends, HTTPException, APIRouter, status
-from sqlalchemy.orm import Session
+from uuid import UUID
 
-from src.database import get_db, actions
+from fastapi import APIRouter
+from fastapi import status
+
 from src.models import schemas
+from src.services import menu_service
+
+router = APIRouter(prefix='/menus', tags=['Menus'])
 
 
-router = APIRouter(tags=["Menus"])
+@router.post('/', response_model=schemas.Menu, status_code=status.HTTP_201_CREATED)
+async def create_menu(menu: schemas.MenuCreate):
+    """
+    Create menu with all the information:
+
+    - **title**: each menu must have a title
+    - **description**: a long description
+    """
+    return await menu_service.create(data=menu)
 
 
-@router.post("/menus", response_model=schemas.Menu, status_code=status.HTTP_201_CREATED, responses={
-    201: {
-            "description": "Created",
-            "content": {
-                "application/json": {
-                    "example": {"id": 0, "title": "string", "description": "string",
-                                "submenus_count": 0, "dishes_count": 0}
-                }
-            }
-        }
-})
-def create_menu(menu: schemas.MenuCreate, db: Session = Depends(get_db)):
-    menu = actions.menu_orm.create(db=db, obj_in=menu)
-    return menu
+@router.get('/', response_model=list[schemas.Menu])
+async def get_menus(skip: int = 0, limit: int = 100):
+    """
+    Get all menus
+    """
+    return await menu_service.get_list(skip=skip, limit=limit)
 
 
-@router.get("/menus", response_model=list[schemas.Menu])
-def get_menus(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    menus = actions.menu_orm.get_all_with_relates(db=db, skip=skip, limit=limit)
-    return menus
+@router.get('/{menu_id}', response_model=schemas.Menu, responses={
+    404: {
+        'model': schemas.MenuError,
+        'description': 'Menu not found'
+    }
+}
+            )
+async def get_menu(menu_id: UUID):
+    """
+    Get menu by id
+    """
+    return await menu_service.get(menu_id=menu_id)
 
 
-@router.get("/menus/{menu_id}", response_model=schemas.Menu)
-def get_menu(menu_id: str, db: Session = Depends(get_db)):
-    menu = actions.menu_orm.get_with_relates(db=db, menu_id=menu_id)
-    if not menu or not any(menu):
-        raise HTTPException(detail="menu not found", status_code=404)
-    return menu
+@router.patch('/{menu_id}', response_model=schemas.Menu, responses={
+    404: {
+        'model': schemas.MenuError,
+        'description': 'Menu not found'
+    }
+}
+            )
+async def update_menu(menu_id: UUID, menu: schemas.MenuUpdate):
+    """
+    Update menu and return updating instance
+    """
+    return await menu_service.update(menu_id=menu_id, data=menu)
 
 
-@router.patch("/menus/{menu_id}", response_model=schemas.Menu)
-def update_menu(menu_id: str, menu: schemas.MenuUpdate, db: Session = Depends(get_db)):
-    updated = actions.menu_orm.update(db=db, id_obj=menu_id, obj_data=menu)
-    if not updated:
-        raise HTTPException(detail="menu not found", status_code=200)
-    menu = actions.menu_orm.get_with_relates(db=db, menu_id=menu_id)
-    return menu
-
-
-@router.delete("/menus/{menu_id}")
-def delete_menu(menu_id: str, db: Session = Depends(get_db)):
-    if not actions.menu_orm.check_exist(db=db, menu_id=menu_id):
-        raise HTTPException(detail='menu not exists', status_code=404)
-    actions.menu_orm.remove(db=db, id_obj=menu_id)
-    return {'status': True, 'message': 'The menu has been deleted'}
+@router.delete('/{menu_id}', response_model=schemas.Remove)
+async def delete_menu(menu_id: UUID):
+    """
+    Remove menu
+    """
+    return {
+        'status': await menu_service.remove(menu_id=menu_id),
+        'message': 'The menu has been deleted',
+    }
