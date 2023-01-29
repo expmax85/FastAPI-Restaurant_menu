@@ -5,15 +5,16 @@ from fastapi import HTTPException
 
 from src.cache import get_cache
 from src.cache import key_gen
-from src.cache import RedisCache
 from src.cache import serialize
+from src.cache.cache_service import AbstractCache
 from src.database.actions import get_menu_orm
-from src.database.actions import MenuAction
+from src.database.crud import BaseORM
 from src.models import Menu
 from src.models import schemas
+from src.services.base_servises import Service
 
 
-class MenuService:
+class MenuService(Service):
     def __init__(self, cache, service_orm, cache_key: str = 'all_dishes'):
         self.cache = cache
         self.service_orm = service_orm
@@ -21,7 +22,7 @@ class MenuService:
 
     async def create(self, data: schemas.MenuCreate) -> dict:
         menu = await self.service_orm.create(data)
-        result = serialize(menu)
+        result = serialize(obj=menu)
         result['submenus_count'] = 0
         result['dishes_count'] = 0
         await self.cache.set_cache(result, key=key_gen(getattr(menu, 'id')))
@@ -61,6 +62,6 @@ class MenuService:
         return True
 
 
-def get_menu_service(cache: RedisCache = Depends(get_cache),
-                     service_orm: MenuAction = Depends(get_menu_orm)):
+def get_menu_service(cache: AbstractCache = Depends(get_cache),
+                     service_orm: BaseORM = Depends(get_menu_orm)) -> Service:
     return MenuService(cache=cache, service_orm=service_orm)

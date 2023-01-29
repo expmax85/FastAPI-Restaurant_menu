@@ -1,3 +1,3 @@
+from .base_cache import AbstractCache
 from .cache_service import get_cache
-from .cache_service import RedisCache
 from .utils import *

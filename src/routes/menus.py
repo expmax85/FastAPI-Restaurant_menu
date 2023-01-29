@@ -6,14 +6,14 @@ from fastapi import status
 
 from src.models import schemas
 from src.services import get_menu_service
-from src.services import MenuService
+from src.services import Service
 
 router = APIRouter(prefix='/menus', tags=['Menus'])
 
 
 @router.post('/', response_model=schemas.Menu, status_code=status.HTTP_201_CREATED)
 async def create_menu(menu: schemas.MenuCreate,
-                      menu_service: MenuService = Depends(get_menu_service)):
+                      menu_service: Service = Depends(get_menu_service)):
     """
     Create menu with all the information:
 
@@ -25,7 +25,7 @@ async def create_menu(menu: schemas.MenuCreate,
 
 @router.get('/', response_model=list[schemas.Menu])
 async def get_menus(skip: int = 0, limit: int = 100,
-                    menu_service: MenuService = Depends(get_menu_service)):
+                    menu_service: Service = Depends(get_menu_service)):
     """
     Get all menus
     """
@@ -38,9 +38,9 @@ async def get_menus(skip: int = 0, limit: int = 100,
         'description': 'Menu not found'
     }
 }
-            )
+)
 async def get_menu(menu_id: UUID,
-                   menu_service: MenuService = Depends(get_menu_service)):
+                   menu_service: Service = Depends(get_menu_service)):
     """
     Get menu by id
     """
@@ -53,9 +53,9 @@ async def get_menu(menu_id: UUID,
         'description': 'Menu not found'
     }
 }
-            )
+)
 async def update_menu(menu_id: UUID, menu: schemas.MenuUpdate,
-                      menu_service: MenuService = Depends(get_menu_service)):
+                      menu_service: Service = Depends(get_menu_service)):
     """
     Update menu and return updating instance
     """
@@ -64,7 +64,7 @@ async def update_menu(menu_id: UUID, menu: schemas.MenuUpdate,
 
 @router.delete('/{menu_id}', response_model=schemas.Remove)
 async def delete_menu(menu_id: UUID,
-                      menu_service: MenuService = Depends(get_menu_service)):
+                      menu_service: Service = Depends(get_menu_service)):
     """
     Remove menu
     """

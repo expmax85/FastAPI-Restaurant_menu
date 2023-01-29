@@ -10,10 +10,15 @@ from sqlalchemy_utils import UUIDType
 from src.database import Base
 
 
-class Menu(Base):
-    __tablename__ = 'menus'
+class Bill(Base):
+    __abstract__ = True
 
     id = Column('id', UUIDType(binary=False), primary_key=True, default=uuid.uuid4)
+
+
+class Menu(Bill):
+    __tablename__ = 'menus'
+
     title = Column('title', String(80), nullable=False)
     description = Column('description', String(200), nullable=False, default='test description')
 
@@ -23,10 +28,9 @@ class Menu(Base):
         return f'{self.title}'
 
 
-class SubMenu(Base):
+class SubMenu(Bill):
     __tablename__ = 'submenus'
 
-    id = Column('id', UUIDType(binary=False), primary_key=True, default=uuid.uuid4)
     title = Column('title', String(80), nullable=False)
     description = Column('description', String(200), nullable=False, default='test description')
     menu_id = Column('Menu', ForeignKey('menus.id', ondelete='CASCADE'))
@@ -38,10 +42,9 @@ class SubMenu(Base):
         return f'{self.title}'
 
 
-class Dish(Base):
+class Dish(Bill):
     __tablename__ = 'dishes'
 
-    id = Column('id', UUIDType(binary=False), primary_key=True, default=uuid.uuid4)
     title = Column('title', String(80), nullable=False)
     description = Column('description', String(200), nullable=False, default='test description')
     price = Column('price', Float(precision=2), nullable=False)

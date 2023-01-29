@@ -5,15 +5,16 @@ from fastapi import HTTPException
 
 from src.cache import get_cache
 from src.cache import key_gen
-from src.cache import RedisCache
 from src.cache import serialize
+from src.cache.cache_service import AbstractCache
 from src.database.actions import get_submenu_orm
-from src.database.actions import SubMenuAction
+from src.database.crud import BaseORM
 from src.models import schemas
 from src.models import SubMenu
+from src.services.base_servises import Service
 
 
-class SubMenuService:
+class SubMenuService(Service):
     def __init__(self, cache, service_orm, cache_key: str = 'all_dishes'):
         self.cache = cache
         self.service_orm = service_orm
@@ -63,6 +64,6 @@ class SubMenuService:
         return True
 
 
-def get_submenu_service(cache: RedisCache = Depends(get_cache),
-                        service_orm: SubMenuAction = Depends(get_submenu_orm)):
+def get_submenu_service(cache: AbstractCache = Depends(get_cache),
+                        service_orm: BaseORM = Depends(get_submenu_orm)) -> Service:
     return SubMenuService(cache=cache, service_orm=service_orm)

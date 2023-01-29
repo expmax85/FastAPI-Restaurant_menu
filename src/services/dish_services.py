@@ -5,15 +5,16 @@ from fastapi import HTTPException
 
 from src.cache import get_cache
 from src.cache import key_gen
-from src.cache import RedisCache
 from src.cache import serialize
-from src.database.actions import DishAction
+from src.cache.cache_service import AbstractCache
 from src.database.actions import get_dish_orm
+from src.database.crud import BaseORM
 from src.models import Dish
 from src.models import schemas
+from src.services.base_servises import Service
 
 
-class DishService:
+class DishService(Service):
     def __init__(self, cache, service_orm, cache_key: str = 'all_dishes'):
         self.cache = cache
         self.service_orm = service_orm
@@ -66,6 +67,6 @@ class DishService:
         return True
 
 
-def get_dish_service(cache: RedisCache = Depends(get_cache),
-                     service_orm: DishAction = Depends(get_dish_orm)):
+def get_dish_service(cache: AbstractCache = Depends(get_cache),
+                     service_orm: BaseORM = Depends(get_dish_orm)) -> Service:
     return DishService(cache=cache, service_orm=service_orm)

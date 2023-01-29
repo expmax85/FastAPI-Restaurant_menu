@@ -9,13 +9,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql import Subquery
 
 from src.database import get_db
-from src.database.crud import BaseCRUD
+from src.database.crud import BaseORM
 from src.models import Dish
 from src.models import Menu
 from src.models import SubMenu
 
 
-class MenuAction(BaseCRUD):
+class MenuAction(BaseORM):
     def __init__(self, model: Type[Menu], db: AsyncSession):
         super().__init__()
         self.model = model
@@ -64,7 +64,7 @@ class MenuAction(BaseCRUD):
         return result.first()
 
 
-class SubMenuAction(BaseCRUD):
+class SubMenuAction(BaseORM):
     def __init__(self, model: Type[SubMenu], db: AsyncSession):
         super().__init__()
         self.model = model
@@ -115,7 +115,7 @@ class SubMenuAction(BaseCRUD):
         return result.all()
 
 
-class DishAction(BaseCRUD):
+class DishAction(BaseORM):
 
     def __init__(self, model: Type[Dish], db: AsyncSession):
         super().__init__()

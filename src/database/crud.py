@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import DeclarativeMeta
 
 
-class BaseCRUD:
+class BaseORM:
 
     def __init__(self, model: DeclarativeMeta = None, db: AsyncSession = None):
         self.model = model

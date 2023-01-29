@@ -2,10 +2,11 @@ import json
 
 import aioredis
 
+from src.cache.base_cache import AbstractCache
 from src.config import settings
 
 
-class RedisCache:
+class RedisCache(AbstractCache):
 
     def __init__(self, redis_url: str) -> None:
         self.redis = aioredis.from_url(redis_url)
@@ -27,5 +28,5 @@ class RedisCache:
             await self.redis.delete(key)
 
 
-def get_cache():
+def get_cache() -> AbstractCache:
     return RedisCache(f'redis://{settings.REDIS_HOST}')

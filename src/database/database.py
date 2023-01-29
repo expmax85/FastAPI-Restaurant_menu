@@ -32,5 +32,5 @@ class SQLSession:
         await self.session.rollback()
 
 
-def get_db():
+def get_db() -> 'SQLSession':
     return SQLSession()
