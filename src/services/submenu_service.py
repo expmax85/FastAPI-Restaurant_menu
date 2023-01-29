@@ -1,12 +1,14 @@
-from typing import Optional
 from uuid import UUID
 
 from fastapi import HTTPException
 
+from src.cache import cache
+from src.cache import key_gen
 from src.cache import RedisCache
+from src.cache import serialize
 from src.database.actions import SubMenuAction
-from src.models import schemas, SubMenu
-from src.cache import serialize, key_gen, cache
+from src.models import schemas
+from src.models import SubMenu
 
 
 class SubMenuService:
@@ -24,8 +26,8 @@ class SubMenuService:
         await self.cache.delete_cache(key=key_gen(menu_id))
         return result
 
-    async def get_list(self, menu_id: UUID, skip: int = 0, limit: int = 10) -> Optional[list | dict]:
-        result: Optional[list | dict] = await self.cache.get_cache(key=key_gen(menu_id, self.all_cache_key))
+    async def get_list(self, menu_id: UUID, skip: int = 0, limit: int = 10) -> list | dict | None:
+        result: list | dict | None = await self.cache.get_cache(key=key_gen(menu_id, self.all_cache_key))
         if not result:
             submenus: list[SubMenu] = await self.service_orm.get_all_with_relates(menu_id=menu_id, skip=skip,
                                                                                   limit=limit)

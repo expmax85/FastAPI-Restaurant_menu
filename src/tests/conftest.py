@@ -4,6 +4,7 @@ from typing import Generator
 import pytest
 import pytest_asyncio
 from httpx import AsyncClient
+
 from src.main import app
 
 

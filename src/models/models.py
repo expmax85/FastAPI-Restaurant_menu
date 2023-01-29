@@ -1,8 +1,11 @@
 import uuid
 
-from sqlalchemy import Column, String, Float, ForeignKey
-from sqlalchemy_utils import UUIDType
+from sqlalchemy import Column
+from sqlalchemy import Float
+from sqlalchemy import ForeignKey
+from sqlalchemy import String
 from sqlalchemy.orm import relationship
+from sqlalchemy_utils import UUIDType
 
 from src.database import Base
 

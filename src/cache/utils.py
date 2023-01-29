@@ -1,6 +1,9 @@
-from sqlalchemy.orm import InstanceState, DeclarativeMeta
+from sqlalchemy.orm import DeclarativeMeta
+from sqlalchemy.orm import InstanceState
 
-from src.models import Dish, Menu, SubMenu
+from src.models import Dish
+from src.models import Menu
+from src.models import SubMenu
 
 __all__ = ('serialize', 'key_gen')
 

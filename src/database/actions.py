@@ -1,14 +1,18 @@
-from typing import Type
 from uuid import UUID
-from sqlalchemy import func, select, exists
+
+from sqlalchemy import exists
+from sqlalchemy import func
+from sqlalchemy import select
 from sqlalchemy.sql import Subquery
 
 from src.database.crud import BaseCRUD
-from src.models import Menu, SubMenu, Dish
+from src.models import Dish
+from src.models import Menu
+from src.models import SubMenu
 
 
 class MenuAction(BaseCRUD):
-    model: Type[Menu] = Menu
+    model: type[Menu] = Menu
 
     async def check_exist(self, menu_id: UUID) -> bool:
         async with self.db as db:
@@ -54,7 +58,7 @@ class MenuAction(BaseCRUD):
 
 
 class SubMenuAction(BaseCRUD):
-    model: Type[SubMenu] = SubMenu
+    model: type[SubMenu] = SubMenu
 
     async def check_exist(self, submenu_id: UUID, menu_id: UUID) -> bool:
         async with self.db as db:
@@ -93,7 +97,7 @@ class SubMenuAction(BaseCRUD):
 
 
 class DishAction(BaseCRUD):
-    model: Type[Dish] = Dish
+    model: type[Dish] = Dish
 
     async def check_exist(self, submenu_id: UUID, dish_id: UUID) -> bool:
         async with self.db as db:

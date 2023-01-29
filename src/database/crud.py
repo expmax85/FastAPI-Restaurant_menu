@@ -1,7 +1,7 @@
-from fastapi.encoders import jsonable_encoder
-from pydantic import BaseModel
 from uuid import UUID
 
+from fastapi.encoders import jsonable_encoder
+from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import DeclarativeMeta

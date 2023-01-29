@@ -1,1 +1,2 @@
-from .database import Base, SQLSession
+from .database import Base
+from .database import SQLSession
