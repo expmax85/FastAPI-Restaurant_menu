@@ -1,20 +1,23 @@
 from uuid import UUID
 
+from fastapi import Depends
 from fastapi import HTTPException
 
-from src.cache import cache
+from src.cache import get_cache
 from src.cache import key_gen
+from src.cache import RedisCache
 from src.cache import serialize
-from src.cache.cache_service import RedisCache
 from src.database.actions import DishAction
+from src.database.actions import get_dish_orm
 from src.models import Dish
 from src.models import schemas
 
 
 class DishService:
-    all_cache_key: str = 'all_dishes'
-    cache: RedisCache = cache
-    service_orm: DishAction = DishAction()
+    def __init__(self, cache, service_orm, cache_key: str = 'all_dishes'):
+        self.cache = cache
+        self.service_orm = service_orm
+        self.all_cache_key = cache_key
 
     async def create(self, menu_id: UUID, submenu_id: UUID, data: schemas.DishCreate) -> dict:
         dish = await self.service_orm.create(obj_in=data, submenu_id=submenu_id)
@@ -63,4 +66,6 @@ class DishService:
         return True
 
 
-dish_service = DishService()
+def get_dish_service(cache: RedisCache = Depends(get_cache),
+                     service_orm: DishAction = Depends(get_dish_orm)):
+    return DishService(cache=cache, service_orm=service_orm)

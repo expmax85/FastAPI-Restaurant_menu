@@ -1,20 +1,23 @@
 from uuid import UUID
 
+from fastapi import Depends
 from fastapi import HTTPException
 
-from src.cache import cache
+from src.cache import get_cache
 from src.cache import key_gen
 from src.cache import RedisCache
 from src.cache import serialize
+from src.database.actions import get_menu_orm
 from src.database.actions import MenuAction
 from src.models import Menu
 from src.models import schemas
 
 
 class MenuService:
-    all_cache_key: str = 'all_menus'
-    cache: RedisCache = cache
-    service_orm: MenuAction = MenuAction()
+    def __init__(self, cache, service_orm, cache_key: str = 'all_dishes'):
+        self.cache = cache
+        self.service_orm = service_orm
+        self.all_cache_key = cache_key
 
     async def create(self, data: schemas.MenuCreate) -> dict:
         menu = await self.service_orm.create(data)
@@ -44,7 +47,7 @@ class MenuService:
         return result
 
     async def update(self, menu_id: UUID, data: schemas.MenuUpdate) -> dict:
-        if not await self.service_orm.check_exist(menu_id=menu_id):
+        if not await self.service_orm.check_exist_menu(menu_id=menu_id):
             raise HTTPException(detail='menu not found', status_code=404)
         await self.cache.delete_cache(key=key_gen(menu_id))
         await self.service_orm.update(id_obj=menu_id, obj_data=data)
@@ -58,4 +61,6 @@ class MenuService:
         return True
 
 
-menu_service = MenuService()
+def get_menu_service(cache: RedisCache = Depends(get_cache),
+                     service_orm: MenuAction = Depends(get_menu_orm)):
+    return MenuService(cache=cache, service_orm=service_orm)

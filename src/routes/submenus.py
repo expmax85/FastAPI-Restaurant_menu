@@ -1,12 +1,13 @@
 from uuid import UUID
 
 from fastapi import APIRouter
+from fastapi import Depends
 from fastapi import HTTPException
 from fastapi import status
 
-from src.database import actions
 from src.models import schemas
-from src.services import submenu_service
+from src.services import get_submenu_service
+from src.services import SubMenuService
 
 router = APIRouter(prefix='/menus/{menu_id}/submenus', tags=['Submenus'])
 
@@ -19,14 +20,15 @@ router = APIRouter(prefix='/menus/{menu_id}/submenus', tags=['Submenus'])
                  }
              }
              )
-async def create_submenu(menu_id: UUID, submenu: schemas.SubMenuCreate):
+async def create_submenu(menu_id: UUID, submenu: schemas.SubMenuCreate,
+                         submenu_service: SubMenuService = Depends(get_submenu_service)):
     """
     Create submenu  for menu with all the information:
 
     - **title**: each submenu must have a title
     - **description**: a long description
     """
-    if not await actions.menu_orm.check_exist(menu_id):
+    if not await submenu_service.service_orm.check_exist_menu(menu_id):
         raise HTTPException(detail='menu not found', status_code=404)
     return await submenu_service.create(data=submenu, menu_id=menu_id)
 
@@ -39,7 +41,8 @@ async def create_submenu(menu_id: UUID, submenu: schemas.SubMenuCreate):
                 }
             }
             )
-async def get_submenu(menu_id: UUID, submenu_id: UUID):
+async def get_submenu(menu_id: UUID, submenu_id: UUID,
+                      submenu_service: SubMenuService = Depends(get_submenu_service)):
     """
     Get submenu by id, depending from menu
     """
@@ -47,7 +50,8 @@ async def get_submenu(menu_id: UUID, submenu_id: UUID):
 
 
 @router.get('/', response_model=list[schemas.SubMenu])
-async def get_submenus(menu_id: UUID, skip: int = 0, limit: int = 100):
+async def get_submenus(menu_id: UUID, skip: int = 0, limit: int = 100,
+                       submenu_service: SubMenuService = Depends(get_submenu_service)):
     """
     Get all submenus, depending from menu
     """
@@ -61,17 +65,19 @@ async def get_submenus(menu_id: UUID, skip: int = 0, limit: int = 100):
     }
 }
             )
-async def update_submenu(menu_id: UUID, submenu_id: UUID, submenu: schemas.SubMenuUpdate):
+async def update_submenu(menu_id: UUID, submenu_id: UUID, submenu: schemas.SubMenuUpdate,
+                         submenu_service: SubMenuService = Depends(get_submenu_service)):
     """
     Update submenu
     """
-    if not await actions.submenu_orm.check_exist(menu_id=menu_id, submenu_id=submenu_id):
+    if not await submenu_service.service_orm.check_exist_submenu(menu_id=menu_id, submenu_id=submenu_id):
         raise HTTPException(detail='submenu not found', status_code=404)
     return await submenu_service.update(submenu_id=submenu_id, menu_id=menu_id, data=submenu)
 
 
 @router.delete('/{submenu_id}', response_model=schemas.Remove)
-async def delete_submenu(menu_id: UUID, submenu_id: UUID):
+async def delete_submenu(menu_id: UUID, submenu_id: UUID,
+                         submenu_service: SubMenuService = Depends(get_submenu_service)):
     """
     Remove submenu
     """

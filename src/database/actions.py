@@ -1,10 +1,14 @@
+from typing import Type
 from uuid import UUID
 
+from fastapi import Depends
 from sqlalchemy import exists
 from sqlalchemy import func
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql import Subquery
 
+from src.database import get_db
 from src.database.crud import BaseCRUD
 from src.models import Dish
 from src.models import Menu
@@ -12,9 +16,12 @@ from src.models import SubMenu
 
 
 class MenuAction(BaseCRUD):
-    model: type[Menu] = Menu
+    def __init__(self, model: Type[Menu], db: AsyncSession):
+        super().__init__()
+        self.model = model
+        self.db = db
 
-    async def check_exist(self, menu_id: UUID) -> bool:
+    async def check_exist_menu(self, menu_id: UUID) -> bool:
         async with self.db as db:
             result = await db.session.execute(exists(self.model)
                                               .where(self.model.id == menu_id)
@@ -58,9 +65,21 @@ class MenuAction(BaseCRUD):
 
 
 class SubMenuAction(BaseCRUD):
-    model: type[SubMenu] = SubMenu
+    def __init__(self, model: Type[SubMenu], db: AsyncSession):
+        super().__init__()
+        self.model = model
+        self.db = db
 
-    async def check_exist(self, submenu_id: UUID, menu_id: UUID) -> bool:
+    async def check_exist_menu(self, menu_id: UUID) -> bool:
+        async with self.db as db:
+            result = await db.session.execute(exists(Menu)
+                                              .where(Menu.id == menu_id)
+                                              .select())
+        if result.scalars().first():
+            return True
+        return False
+
+    async def check_exist_submenu(self, submenu_id: UUID, menu_id: UUID) -> bool:
         async with self.db as db:
             result = await db.session.execute(
                 exists(self.model)
@@ -97,9 +116,26 @@ class SubMenuAction(BaseCRUD):
 
 
 class DishAction(BaseCRUD):
-    model: type[Dish] = Dish
 
-    async def check_exist(self, submenu_id: UUID, dish_id: UUID) -> bool:
+    def __init__(self, model: Type[Dish], db: AsyncSession):
+        super().__init__()
+        self.model = model
+        self.db = db
+
+    async def check_exist_submenu(self, submenu_id: UUID, menu_id: UUID) -> bool:
+        async with self.db as db:
+            result = await db.session.execute(
+                exists(SubMenu)
+                .where(
+                    SubMenu.id == submenu_id,
+                    SubMenu.menu_id == menu_id,
+                ).select(),
+            )
+        if result.scalars().first():
+            return True
+        return False
+
+    async def check_exist_dish(self, submenu_id: UUID, dish_id: UUID) -> bool:
         async with self.db as db:
             result = await db.session.execute(
                 select(
@@ -135,6 +171,13 @@ class DishAction(BaseCRUD):
         return result.scalars().all()
 
 
-menu_orm = MenuAction()
-submenu_orm = SubMenuAction()
-dish_orm = DishAction()
+def get_dish_orm(db: AsyncSession = Depends(get_db)):
+    return DishAction(model=Dish, db=db)
+
+
+def get_menu_orm(db: AsyncSession = Depends(get_db)):
+    return MenuAction(model=Menu, db=db)
+
+
+def get_submenu_orm(db: AsyncSession = Depends(get_db)):
+    return SubMenuAction(model=SubMenu, db=db)

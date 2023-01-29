@@ -30,3 +30,7 @@ class SQLSession:
 
     async def rollback(self) -> None:
         await self.session.rollback()
+
+
+def get_db():
+    return SQLSession()

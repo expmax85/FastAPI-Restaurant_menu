@@ -1,20 +1,23 @@
 from uuid import UUID
 
+from fastapi import Depends
 from fastapi import HTTPException
 
-from src.cache import cache
+from src.cache import get_cache
 from src.cache import key_gen
 from src.cache import RedisCache
 from src.cache import serialize
+from src.database.actions import get_submenu_orm
 from src.database.actions import SubMenuAction
 from src.models import schemas
 from src.models import SubMenu
 
 
 class SubMenuService:
-    all_cache_key: str = 'all_submenus'
-    cache: RedisCache = cache
-    service_orm: SubMenuAction = SubMenuAction()
+    def __init__(self, cache, service_orm, cache_key: str = 'all_dishes'):
+        self.cache = cache
+        self.service_orm = service_orm
+        self.all_cache_key = cache_key
 
     async def create(self, menu_id: UUID, data: schemas.SubMenuCreate) -> dict:
         submenu = await self.service_orm.create(obj_in=data, menu_id=menu_id)
@@ -46,7 +49,7 @@ class SubMenuService:
         return result
 
     async def update(self, menu_id: UUID, submenu_id: UUID, data: schemas.SubMenuUpdate) -> dict:
-        if not await self.service_orm.check_exist(menu_id=menu_id, submenu_id=submenu_id):
+        if not await self.service_orm.check_exist_submenu(menu_id=menu_id, submenu_id=submenu_id):
             raise HTTPException(detail='submenu not found', status_code=404)
         await self.cache.delete_cache(key=key_gen(menu_id, submenu_id))
         await self.service_orm.update(id_obj=submenu_id, obj_data=data)
@@ -60,4 +63,6 @@ class SubMenuService:
         return True
 
 
-submenu_service = SubMenuService()
+def get_submenu_service(cache: RedisCache = Depends(get_cache),
+                        service_orm: SubMenuAction = Depends(get_submenu_orm)):
+    return SubMenuService(cache=cache, service_orm=service_orm)

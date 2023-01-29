@@ -1,12 +1,14 @@
 import pytest
 
-from src.database import actions
+from src.tests import dish_orm
+from src.tests import menu_orm
+from src.tests import submenu_orm
 
 
 @pytest.mark.asyncio
 async def test_create_dish(test_app):
-    menu = await actions.menu_orm.create({'title': 'Test menu 1', 'description': 'Test description 1'})
-    submenu = await actions.submenu_orm.create(
+    menu = await menu_orm.create({'title': 'Test menu 1', 'description': 'Test description 1'})
+    submenu = await submenu_orm.create(
         {'title': 'Test submenu 1', 'description': 'Test subdescription 1'},
         menu_id=menu.id,
     )
@@ -19,17 +21,17 @@ async def test_create_dish(test_app):
     data = response.json()
     assert data['title'] == 'Test dish 1'
     assert 'id' in data
-    await actions.menu_orm.remove(menu.id)
+    await menu_orm.remove(menu.id)
 
 
 @pytest.mark.asyncio
 async def test_get_dish(test_app):
-    menu = await actions.menu_orm.create({'title': 'Test menu 1', 'description': 'Test description 1'})
-    submenu = await actions.submenu_orm.create(
+    menu = await menu_orm.create({'title': 'Test menu 1', 'description': 'Test description 1'})
+    submenu = await submenu_orm.create(
         {'title': 'Test submenu 1', 'description': 'Test subdescription 1'},
         menu_id=menu.id,
     )
-    dish = await actions.dish_orm.create(
+    dish = await dish_orm.create(
         {
             'title': 'Test dish 2', 'description': 'Test dish description 2',
             'price': 14.0,
@@ -42,17 +44,17 @@ async def test_get_dish(test_app):
     assert data['title'] == dish.title
     assert data['price'] == str(dish.price)
     assert data['id'] == str(dish.id)
-    await actions.menu_orm.remove(menu.id)
+    await menu_orm.remove(menu.id)
 
 
 @pytest.mark.asyncio
 async def test_get_dishes(test_app):
-    menu = await actions.menu_orm.create({'title': 'Test menu 1', 'description': 'Test description 1'})
-    submenu = await actions.submenu_orm.create(
+    menu = await menu_orm.create({'title': 'Test menu 1', 'description': 'Test description 1'})
+    submenu = await submenu_orm.create(
         {'title': 'Test submenu 1', 'description': 'Test subdescription 1'},
         menu_id=menu.id,
     )
-    await actions.dish_orm.create(
+    await dish_orm.create(
         {
             'title': 'Test dish 2', 'description': 'Test dish description 2',
             'price': 14.0,
@@ -63,17 +65,17 @@ async def test_get_dishes(test_app):
     assert response.status_code == 200, response.text
     data = response.json()
     assert len(data) == 1
-    await actions.menu_orm.remove(menu.id)
+    await menu_orm.remove(menu.id)
 
 
 @pytest.mark.asyncio
 async def test_update_dish(test_app):
-    menu = await actions.menu_orm.create({'title': 'Test menu 1', 'description': 'Test description 1'})
-    submenu = await actions.submenu_orm.create(
+    menu = await menu_orm.create({'title': 'Test menu 1', 'description': 'Test description 1'})
+    submenu = await submenu_orm.create(
         {'title': 'Test submenu 1', 'description': 'Test subdescription 1'},
         menu_id=menu.id,
     )
-    dish = await actions.dish_orm.create(
+    dish = await dish_orm.create(
         {
             'title': 'Test dish 2', 'description': 'Test dish description 2',
             'price': 14.0,
@@ -92,17 +94,17 @@ async def test_update_dish(test_app):
     assert data['title'] == 'Updated dish 1'
     assert data['price'] == '16.0'
     assert data['id'] == str(dish.id)
-    await actions.menu_orm.remove(menu.id)
+    await menu_orm.remove(menu.id)
 
 
 @pytest.mark.asyncio
 async def test_delete_dish(test_app):
-    menu = await actions.menu_orm.create({'title': 'Test menu 1', 'description': 'Test description 1'})
-    submenu = await actions.submenu_orm.create(
+    menu = await menu_orm.create({'title': 'Test menu 1', 'description': 'Test description 1'})
+    submenu = await submenu_orm.create(
         {'title': 'Test submenu 1', 'description': 'Test subdescription 1'},
         menu_id=menu.id,
     )
-    dish = await actions.dish_orm.create(
+    dish = await dish_orm.create(
         {
             'title': 'Test dish 2', 'description': 'Test dish description 2',
             'price': 14.0,
@@ -114,6 +116,6 @@ async def test_delete_dish(test_app):
     data = response.json()
     assert data['status'] is True
     assert data['message'] == 'The dish has been deleted'
-    dishes = await actions.dish_orm.get_all()
+    dishes = await dish_orm.get_all()
     assert len(dishes) == 0
-    await actions.menu_orm.remove(menu.id)
+    await menu_orm.remove(menu.id)

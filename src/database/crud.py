@@ -6,16 +6,12 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import DeclarativeMeta
 
-from src.database import SQLSession
-
 
 class BaseCRUD:
-    model: DeclarativeMeta = None
-    db: AsyncSession = SQLSession()
 
-    def __init__(self, *args, **kwargs):
-        if not self.model:
-            raise AttributeError('Need to define model')
+    def __init__(self, model: DeclarativeMeta = None, db: AsyncSession = None):
+        self.model = model
+        self.db = db
 
     async def create(self, obj_in: BaseModel, **kwargs) -> DeclarativeMeta:
         async with self.db as db:

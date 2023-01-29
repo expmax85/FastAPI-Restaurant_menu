@@ -27,4 +27,5 @@ class RedisCache:
             await self.redis.delete(key)
 
 
-cache = RedisCache(f'redis://{settings.REDIS_HOST}')
+def get_cache():
+    return RedisCache(f'redis://{settings.REDIS_HOST}')
