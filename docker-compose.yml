@@ -25,7 +25,7 @@ services:
 
   web_db:
     container_name: main_db
-    image: postgres:10.1-alpine
+    image: postgres:15.1-alpine
     expose:
       - 5432
     ports:
@@ -35,6 +35,8 @@ services:
       - ./init-database.sh:/docker-entrypoint-initdb.d/init-database.sh
     environment:
       CONFIG_FILE: ".env.main"
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
     networks:
       - web_net
     healthcheck:
