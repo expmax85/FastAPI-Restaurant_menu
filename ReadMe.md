@@ -44,7 +44,7 @@ uvicorn src.main:app --reload
 ```
 
 # Docker
-# Запуск приложения через докер
+## Запуск приложения через докер
 ```bash
 docker compose -f docker-compose.yml --env-file ./conf/.env.main build
 docker compose -f docker-compose.yml --env-file ./conf/.env.main up -d

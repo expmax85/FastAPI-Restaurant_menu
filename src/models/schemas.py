@@ -79,6 +79,10 @@ class SubMenu(SubMenuBase):
     class Config:
         orm_mode = True
 
+    @validator('id')
+    def id_to_str(cls, i):
+        return str(i)
+
 
 class DishBase(BaseModel):
     title: str
