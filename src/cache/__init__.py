@@ -1,2 +1,2 @@
 from .utils import *
-from .cache_service import cache
+from .cache_service import cache, RedisCache

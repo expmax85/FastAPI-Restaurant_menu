@@ -10,13 +10,13 @@ Base = declarative_base()
 
 
 class SQLSession:
-    def __init__(self, session: AsyncSession = async_session()):
+    def __init__(self, session: AsyncSession = async_session()) -> None:
         self.session = session
 
-    async def __aenter__(self):
+    async def __aenter__(self) -> 'SQLSession':
         return self
 
-    async def __aexit__(self, exc_type, exc_value, traceback):
+    async def __aexit__(self, exc_type, exc_value, traceback) -> None:
         try:
             await self.commit()
         except Exception:
@@ -24,8 +24,8 @@ class SQLSession:
         finally:
             await self.session.close()
 
-    async def commit(self):
+    async def commit(self) -> None:
         await self.session.commit()
 
-    async def rollback(self):
+    async def rollback(self) -> None:
         await self.session.rollback()

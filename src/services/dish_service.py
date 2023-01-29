@@ -1,48 +1,50 @@
+from typing import Optional
 from uuid import UUID
 
 from fastapi import HTTPException
 
 from src.cache import serialize, key_gen, cache
+from src.cache.cache_service import RedisCache
 from src.database.actions import DishAction
 from src.models import schemas, Dish
 
 
 class DishService:
-    all_cache_key = 'all_dishes'
-    cache = cache
-    service_orm = DishAction()
+    all_cache_key: str = 'all_dishes'
+    cache: RedisCache = cache
+    service_orm: DishAction = DishAction()
 
-    async def create(self, menu_id: UUID, submenu_id: UUID, data: schemas.DishCreate) -> Dish:
+    async def create(self, menu_id: UUID, submenu_id: UUID, data: schemas.DishCreate) -> dict:
         dish = await self.service_orm.create(obj_in=data, submenu_id=submenu_id)
-        values = serialize(dish)
-        await self.cache.set_cache(data=values, key=key_gen(menu_id, submenu_id, getattr(dish, 'id')))
+        result: dict = serialize(dish)
+        await self.cache.set_cache(data=result, key=key_gen(menu_id, submenu_id, getattr(dish, 'id')))
         await self.cache.delete_cache(key=key_gen(menu_id, submenu_id, self.all_cache_key))
         await self.cache.delete_cache(key=key_gen(menu_id, 'all_submenus'))
         await self.cache.delete_cache(key=key_gen(menu_id, submenu_id))
-        return dish
+        return result
 
-    async def get_list(self, menu_id: UUID, submenu_id: UUID, skip: int = 0, limit: int = 10) -> list[Dish] | dict:
-        cache_key = key_gen(menu_id, submenu_id, self.all_cache_key)
-        dishes = await self.cache.get_cache(key=cache_key)
-        if not dishes:
-            dishes = await self.service_orm.get_all_with_relates(
+    async def get_list(self, menu_id: UUID, submenu_id: UUID, skip: int = 0, limit: int = 10) -> Optional[list | dict]:
+        cache_key: str = key_gen(menu_id, submenu_id, self.all_cache_key)
+        result: Optional[list | dict] = await self.cache.get_cache(key=cache_key)
+        if not result:
+            dishes: list[Dish] = await self.service_orm.get_all_with_relates(
                 menu_id=menu_id, submenu_id=submenu_id,
                 skip=skip, limit=limit,
             )
-            values = list(serialize(dish) for dish in dishes)
-            await self.cache.set_cache(data=values, key=cache_key)
-        return dishes
+            result = list(serialize(dish) for dish in dishes)
+            await self.cache.set_cache(data=result, key=cache_key)
+        return result
 
-    async def get(self, menu_id: UUID, submenu_id: UUID, dish_id: UUID) -> Dish | dict:
-        cache_key = key_gen(menu_id, submenu_id, dish_id)
-        dish = await self.cache.get_cache(key=cache_key)
-        if not dish:
-            dish = await self.service_orm.get_with_relates(menu_id=menu_id, submenu_id=submenu_id, dish_id=dish_id)
+    async def get(self, menu_id: UUID, submenu_id: UUID, dish_id: UUID) -> dict:
+        cache_key: str = key_gen(menu_id, submenu_id, dish_id)
+        result: dict = await self.cache.get_cache(key=cache_key)
+        if not result:
+            dish: Dish = await self.service_orm.get_with_relates(menu_id=menu_id, submenu_id=submenu_id, dish_id=dish_id)
             if not dish:
                 raise HTTPException(detail='dish not found', status_code=404)
-
-            await self.cache.set_cache(data=serialize(dish), key=cache_key)
-        return dish
+            result = serialize(dish)
+            await self.cache.set_cache(data=result, key=cache_key)
+        return result
 
     async def update(self, menu_id: UUID, submenu_id: UUID, dish_id: UUID, data: schemas.DishUpdate) -> dict:
         await self.cache.delete_cache(key=key_gen(menu_id, submenu_id, dish_id))

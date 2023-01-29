@@ -1,19 +1,20 @@
-# type: ignore
-
+from typing import Type
 from uuid import UUID
 from sqlalchemy import func, select, exists
 from sqlalchemy.sql import Subquery
 
 from src.database.crud import BaseCRUD
-from src.models import schemas, Menu, SubMenu, Dish
+from src.models import Menu, SubMenu, Dish
 
 
-class MenuAction(BaseCRUD[Menu, schemas.MenuCreate, schemas.MenuUpdate]):
-    model = Menu
+class MenuAction(BaseCRUD):
+    model: Type[Menu] = Menu
 
     async def check_exist(self, menu_id: UUID) -> bool:
         async with self.db as db:
-            result = await db.session.execute(exists(self.model).where(self.model.id == menu_id).select())
+            result = await db.session.execute(exists(self.model)
+                                              .where(self.model.id == menu_id)
+                                              .select())
         if result.scalars().first():
             return True
         return False
@@ -52,8 +53,8 @@ class MenuAction(BaseCRUD[Menu, schemas.MenuCreate, schemas.MenuUpdate]):
         return result.first()
 
 
-class SubMenuAction(BaseCRUD[SubMenu, schemas.SubMenuCreate, schemas.SubMenuUpdate]):
-    model = SubMenu
+class SubMenuAction(BaseCRUD):
+    model: Type[SubMenu] = SubMenu
 
     async def check_exist(self, submenu_id: UUID, menu_id: UUID) -> bool:
         async with self.db as db:
@@ -83,15 +84,16 @@ class SubMenuAction(BaseCRUD[SubMenu, schemas.SubMenuCreate, schemas.SubMenuUpda
             result = await db.session.execute(queryset.filter(self.model.id == submenu_id))
         return result.first()
 
-    async def get_all_with_relates(self, menu_id: UUID, skip: int = 0, limit: int = 100) -> list[SubMenu]:
+    async def get_all_with_relates(self, menu_id: UUID, skip: int = 0,
+                                   limit: int = 100) -> list[SubMenu]:
         async with self.db as db:
             queryset = await self._query_for_get(menu_id)
             result = await db.session.execute(queryset.offset(skip).limit(limit))
         return result.all()
 
 
-class DishAction(BaseCRUD[Dish, schemas.DishCreate, schemas.DishUpdate]):
-    model = Dish
+class DishAction(BaseCRUD):
+    model: Type[Dish] = Dish
 
     async def check_exist(self, submenu_id: UUID, dish_id: UUID) -> bool:
         async with self.db as db:

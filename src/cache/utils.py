@@ -1,12 +1,11 @@
-from sqlalchemy.orm import InstanceState
+from sqlalchemy.orm import InstanceState, DeclarativeMeta
 
-from src.database.crud import ModelType
 from src.models import Dish, Menu, SubMenu
 
 __all__ = ('serialize', 'key_gen')
 
 
-def serialize(obj: ModelType | list) -> dict:
+def serialize(obj: DeclarativeMeta | list | dict) -> dict:
     if isinstance(obj, Dish | Menu | SubMenu):
         result = dict()
         for key, value in obj.__dict__.items():

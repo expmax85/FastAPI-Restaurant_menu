@@ -16,10 +16,10 @@ repos:
     -   id: pyupgrade
         args: [--py38-plus]
 
--   repo: https://github.com/pre-commit/mirrors-autopep8
-    rev: v2.0.1
-    hooks:
-    -   id: autopep8
+#-   repo: https://github.com/pre-commit/mirrors-autopep8
+#    rev: v2.0.1
+#    hooks:
+#    -   id: autopep8
 
 -   repo: https://github.com/PyCQA/flake8
     rev: 6.0.0
@@ -33,10 +33,9 @@ repos:
     hooks:
     -   id: mypy
         args: [--no-strict-optional, --ignore-missing-imports]
-#        disallow_any_generics: True
 
-#-   repo: https://github.com/asottile/add-trailing-comma
-#    rev: v2.4.0
+#-   repo: https://github.com/PyCQA/pylint
+#    rev: v2.16.0b1
 #    hooks:
-#    -   id: add-trailing-comma
-#        args: [--py36-plus]
+#    -   id: pylint
+#        args: ["-rn", "-sn"]
