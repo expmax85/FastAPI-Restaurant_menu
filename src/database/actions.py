@@ -1,24 +1,22 @@
-from typing import Type
 from uuid import UUID
 
 from fastapi import Depends
 from sqlalchemy import exists
 from sqlalchemy import func
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql import Subquery
 
-from src.database import get_db
 from src.database.crud import BaseORM
+from src.database.database import AbstractAsyncSession
+from src.database.database import get_db
 from src.models import Dish
 from src.models import Menu
 from src.models import SubMenu
 
 
 class MenuAction(BaseORM):
-    def __init__(self, model: Type[Menu], db: AsyncSession):
-        super().__init__()
-        self.model = model
+    def __init__(self, db: AbstractAsyncSession):
+        self.model = Menu
         self.db = db
 
     async def check_exist_menu(self, menu_id: UUID) -> bool:
@@ -65,9 +63,8 @@ class MenuAction(BaseORM):
 
 
 class SubMenuAction(BaseORM):
-    def __init__(self, model: Type[SubMenu], db: AsyncSession):
-        super().__init__()
-        self.model = model
+    def __init__(self, db: AbstractAsyncSession):
+        self.model = SubMenu
         self.db = db
 
     async def check_exist_menu(self, menu_id: UUID) -> bool:
@@ -117,9 +114,8 @@ class SubMenuAction(BaseORM):
 
 class DishAction(BaseORM):
 
-    def __init__(self, model: Type[Dish], db: AsyncSession):
-        super().__init__()
-        self.model = model
+    def __init__(self, db: AbstractAsyncSession):
+        self.model = Dish
         self.db = db
 
     async def check_exist_submenu(self, submenu_id: UUID, menu_id: UUID) -> bool:
@@ -171,13 +167,13 @@ class DishAction(BaseORM):
         return result.scalars().all()
 
 
-def get_dish_orm(db: AsyncSession = Depends(get_db)):
-    return DishAction(model=Dish, db=db)
+def get_dish_orm(db: AbstractAsyncSession = Depends(get_db)):
+    return DishAction(db=db)
 
 
-def get_menu_orm(db: AsyncSession = Depends(get_db)):
-    return MenuAction(model=Menu, db=db)
+def get_menu_orm(db: AbstractAsyncSession = Depends(get_db)):
+    return MenuAction(db=db)
 
 
-def get_submenu_orm(db: AsyncSession = Depends(get_db)):
-    return SubMenuAction(model=SubMenu, db=db)
+def get_submenu_orm(db: AbstractAsyncSession = Depends(get_db)):
+    return SubMenuAction(db=db)

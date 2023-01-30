@@ -1,3 +1,6 @@
+from abc import ABC
+from abc import abstractmethod
+
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.ext.asyncio import create_async_engine
 from sqlalchemy.ext.declarative import declarative_base
@@ -10,7 +13,22 @@ async_session = sessionmaker(bind=engine, class_=AsyncSession, expire_on_commit=
 Base = declarative_base()
 
 
-class SQLSession:
+class AbstractAsyncSession(ABC):
+
+    @abstractmethod
+    def __init__(self, session: AsyncSession):
+        self.session = session
+
+    @abstractmethod
+    async def __aenter__(self):
+        raise NotImplementedError
+
+    @abstractmethod
+    async def __aexit__(self, exc_type, exc_value, traceback):
+        raise NotImplementedError
+
+
+class SQLSession(AbstractAsyncSession):
     def __init__(self, session: AsyncSession = async_session()) -> None:
         self.session = session
 
@@ -32,5 +50,5 @@ class SQLSession:
         await self.session.rollback()
 
 
-def get_db() -> 'SQLSession':
+def get_db() -> AbstractAsyncSession:
     return SQLSession()

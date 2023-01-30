@@ -5,35 +5,34 @@ from fastapi import HTTPException
 
 from src.cache import get_cache
 from src.cache import key_gen
-from src.cache import serialize
 from src.cache.cache_service import AbstractCache
 from src.database.actions import get_menu_orm
-from src.database.crud import BaseORM
+from src.database.actions import MenuAction
 from src.models import Menu
 from src.models import schemas
 from src.services.base_servises import Service
 
 
 class MenuService(Service):
-    def __init__(self, cache, service_orm, cache_key: str = 'all_dishes'):
+    def __init__(self, cache: AbstractCache, service_orm: MenuAction, cache_key: str = 'all_dishes'):
         self.cache = cache
         self.service_orm = service_orm
         self.all_cache_key = cache_key
 
     async def create(self, data: schemas.MenuCreate) -> dict:
         menu = await self.service_orm.create(data)
-        result = serialize(obj=menu)
+        result = self.service_orm.serialize(obj=menu)
         result['submenus_count'] = 0
         result['dishes_count'] = 0
         await self.cache.set_cache(result, key=key_gen(getattr(menu, 'id')))
         await self.cache.delete_cache(key=key_gen(self.all_cache_key))
         return result
 
-    async def get_list(self, skip: int = 0, limit: int = 10) -> list | dict | None:
+    async def get_list(self, skip: int = 0, limit: int = 10) -> list | dict:
         result: list | dict | None = await self.cache.get_cache(key=key_gen(self.all_cache_key))
         if not result:
             menus: list[Menu] = await self.service_orm.get_all_with_relates(skip=skip, limit=limit)
-            result = list([serialize(menu) for menu in menus])
+            result = list([self.service_orm.serialize(menu) for menu in menus])
             await self.cache.set_cache(data=result, key=key_gen(self.all_cache_key))
         return result
 
@@ -43,7 +42,7 @@ class MenuService(Service):
             menu = await self.service_orm.get_with_relates(menu_id=menu_id)
             if not menu:
                 raise HTTPException(detail='menu not found', status_code=404)
-            result = serialize(menu)
+            result = self.service_orm.serialize(menu)
             await self.cache.set_cache(data=result, key=key_gen(menu_id))
         return result
 
@@ -63,5 +62,5 @@ class MenuService(Service):
 
 
 def get_menu_service(cache: AbstractCache = Depends(get_cache),
-                     service_orm: BaseORM = Depends(get_menu_orm)) -> Service:
+                     service_orm: MenuAction = Depends(get_menu_orm)) -> Service:
     return MenuService(cache=cache, service_orm=service_orm)

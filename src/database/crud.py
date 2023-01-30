@@ -1,15 +1,19 @@
+from abc import abstractmethod
 from uuid import UUID
 
 from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import DeclarativeMeta
+from sqlalchemy.orm import InstanceState
+
+from src.database.database import AbstractAsyncSession
 
 
 class BaseORM:
 
-    def __init__(self, model: DeclarativeMeta = None, db: AsyncSession = None):
+    @abstractmethod
+    def __init__(self, model: DeclarativeMeta, db: AbstractAsyncSession):
         self.model = model
         self.db = db
 
@@ -43,3 +47,14 @@ class BaseORM:
         async with self.db as db:
             result = await db.session.execute(select(self.model).filter(self.model.id == id_obj))
         return result.scalars().first()
+
+    def serialize(self, obj: DeclarativeMeta | dict) -> dict:
+        if isinstance(obj, self.model):
+            result = dict()
+            for key, value in obj.__dict__.items():
+                if not isinstance(value, InstanceState):
+                    result[key] = str(value) if 'id' in key else value
+            return result
+        result = dict(obj)
+        result['id'] = str(result.get('id'))
+        return result

@@ -5,31 +5,30 @@ from fastapi import HTTPException
 
 from src.cache import get_cache
 from src.cache import key_gen
-from src.cache import serialize
 from src.cache.cache_service import AbstractCache
+from src.database.actions import DishAction
 from src.database.actions import get_dish_orm
-from src.database.crud import BaseORM
 from src.models import Dish
 from src.models import schemas
 from src.services.base_servises import Service
 
 
 class DishService(Service):
-    def __init__(self, cache, service_orm, cache_key: str = 'all_dishes'):
+    def __init__(self, cache: AbstractCache, service_orm: DishAction, cache_key: str = 'all_dishes'):
         self.cache = cache
         self.service_orm = service_orm
         self.all_cache_key = cache_key
 
     async def create(self, menu_id: UUID, submenu_id: UUID, data: schemas.DishCreate) -> dict:
         dish = await self.service_orm.create(obj_in=data, submenu_id=submenu_id)
-        result: dict = serialize(dish)
+        result: dict = self.service_orm.serialize(dish)
         await self.cache.set_cache(data=result, key=key_gen(menu_id, submenu_id, getattr(dish, 'id')))
         await self.cache.delete_cache(key=key_gen(menu_id, submenu_id, self.all_cache_key))
         await self.cache.delete_cache(key=key_gen(menu_id, 'all_submenus'))
         await self.cache.delete_cache(key=key_gen(menu_id, submenu_id))
         return result
 
-    async def get_list(self, menu_id: UUID, submenu_id: UUID, skip: int = 0, limit: int = 10) -> list | dict | None:
+    async def get_list(self, menu_id: UUID, submenu_id: UUID, skip: int = 0, limit: int = 10) -> list | dict:
         cache_key: str = key_gen(menu_id, submenu_id, self.all_cache_key)
         result: list | dict | None = await self.cache.get_cache(key=cache_key)
         if not result:
@@ -37,7 +36,7 @@ class DishService(Service):
                 menu_id=menu_id, submenu_id=submenu_id,
                 skip=skip, limit=limit,
             )
-            result = list(serialize(dish) for dish in dishes)
+            result = list(self.service_orm.serialize(dish) for dish in dishes)
             await self.cache.set_cache(data=result, key=cache_key)
         return result
 
@@ -45,10 +44,11 @@ class DishService(Service):
         cache_key: str = key_gen(menu_id, submenu_id, dish_id)
         result: dict = await self.cache.get_cache(key=cache_key)
         if not result:
-            dish: Dish = await self.service_orm.get_with_relates(menu_id=menu_id, submenu_id=submenu_id, dish_id=dish_id)
+            dish: Dish = await self.service_orm.get_with_relates(menu_id=menu_id, submenu_id=submenu_id,
+                                                                 dish_id=dish_id)
             if not dish:
                 raise HTTPException(detail='dish not found', status_code=404)
-            result = serialize(dish)
+            result = self.service_orm.serialize(dish)
             await self.cache.set_cache(data=result, key=cache_key)
         return result
 
@@ -68,5 +68,5 @@ class DishService(Service):
 
 
 def get_dish_service(cache: AbstractCache = Depends(get_cache),
-                     service_orm: BaseORM = Depends(get_dish_orm)) -> Service:
+                     service_orm: DishAction = Depends(get_dish_orm)) -> Service:
     return DishService(cache=cache, service_orm=service_orm)
