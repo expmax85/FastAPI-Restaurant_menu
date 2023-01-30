@@ -20,9 +20,11 @@ class DishService(Service):
         self.all_cache_key = cache_key
 
     async def create(self, menu_id: UUID, submenu_id: UUID, data: schemas.DishCreate) -> dict:
+        if not await self.service_orm.check_exist_submenu(submenu_id=submenu_id, menu_id=menu_id):
+            raise HTTPException(detail='submenu for not found', status_code=404)
         dish = await self.service_orm.create(obj_in=data, submenu_id=submenu_id)
         result: dict = self.service_orm.serialize(dish)
-        await self.cache.set_cache(data=result, key=key_gen(menu_id, submenu_id, getattr(dish, 'id')))
+        await self.cache.set_cache(data=result, key=key_gen(menu_id, submenu_id, result.get('id')))
         await self.cache.delete_cache(key=key_gen(menu_id, submenu_id, self.all_cache_key))
         await self.cache.delete_cache(key=key_gen(menu_id, 'all_submenus'))
         await self.cache.delete_cache(key=key_gen(menu_id, submenu_id))

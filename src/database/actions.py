@@ -167,13 +167,13 @@ class DishAction(BaseORM):
         return result.scalars().all()
 
 
-def get_dish_orm(db: AbstractAsyncSession = Depends(get_db)):
+def get_dish_orm(db: AbstractAsyncSession = Depends(get_db)) -> DishAction:
     return DishAction(db=db)
 
 
-def get_menu_orm(db: AbstractAsyncSession = Depends(get_db)):
+def get_menu_orm(db: AbstractAsyncSession = Depends(get_db)) -> MenuAction:
     return MenuAction(db=db)
 
 
-def get_submenu_orm(db: AbstractAsyncSession = Depends(get_db)):
+def get_submenu_orm(db: AbstractAsyncSession = Depends(get_db)) -> SubMenuAction:
     return SubMenuAction(db=db)

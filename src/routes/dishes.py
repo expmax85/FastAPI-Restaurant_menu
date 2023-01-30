@@ -2,7 +2,6 @@ from uuid import UUID
 
 from fastapi import APIRouter
 from fastapi import Depends
-from fastapi import HTTPException
 from fastapi import status
 
 from src.models import schemas
@@ -29,8 +28,6 @@ async def create_dish(menu_id: UUID, submenu_id: UUID, dish: schemas.DishCreate,
     - **description**: a long description
     - **price**: some float type score
     """
-    if not await dish_service.service_orm.check_exist_submenu(submenu_id=submenu_id, menu_id=menu_id):
-        raise HTTPException(detail='submenu for not found', status_code=404)
     return await dish_service.create(data=dish, menu_id=menu_id, submenu_id=submenu_id)
 
 
@@ -59,7 +56,7 @@ async def get_dish(menu_id: UUID, submenu_id: UUID, dish_id: UUID,
     return await dish_service.get(menu_id=menu_id, submenu_id=submenu_id, dish_id=dish_id)
 
 
-@router.patch('/{dish_id}', response_model=schemas.Dish)
+@router.patch('/{dish_id}', response_model=schemas.UpdatedDish)
 async def update_dish(menu_id: UUID, submenu_id: UUID, dish_id: UUID, dish: schemas.DishUpdate,
                       dish_service: Service = Depends(get_dish_service)):
     """
@@ -68,7 +65,7 @@ async def update_dish(menu_id: UUID, submenu_id: UUID, dish_id: UUID, dish: sche
     return await dish_service.update(data=dish, menu_id=menu_id, submenu_id=submenu_id, dish_id=dish_id)
 
 
-@router.delete('/{dish_id}', response_model=schemas.Remove)
+@router.delete('/{dish_id}', response_model=schemas.DishRemove)
 async def delete_dish(menu_id: UUID, submenu_id: UUID, dish_id: UUID,
                       dish_service: Service = Depends(get_dish_service)):
     """

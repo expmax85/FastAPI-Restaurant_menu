@@ -22,9 +22,7 @@ class MenuService(Service):
     async def create(self, data: schemas.MenuCreate) -> dict:
         menu = await self.service_orm.create(data)
         result = self.service_orm.serialize(obj=menu)
-        result['submenus_count'] = 0
-        result['dishes_count'] = 0
-        await self.cache.set_cache(result, key=key_gen(getattr(menu, 'id')))
+        await self.cache.set_cache(result, key=key_gen(result.get('id')))
         await self.cache.delete_cache(key=key_gen(self.all_cache_key))
         return result
 
@@ -57,7 +55,7 @@ class MenuService(Service):
         await self.service_orm.remove(id_obj=menu_id)
         await self.cache.delete_cache(key=key_gen(menu_id))
         await self.cache.delete_cache(key=key_gen(self.all_cache_key))
-        await self.cache.delete_all(key_parent=key_gen(menu_id))
+        await self.cache.delete_many(key_parent=key_gen(menu_id))
         return True
 
 

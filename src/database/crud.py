@@ -4,8 +4,8 @@ from uuid import UUID
 from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel
 from sqlalchemy import select
+from sqlalchemy.engine import Row
 from sqlalchemy.orm import DeclarativeMeta
-from sqlalchemy.orm import InstanceState
 
 from src.database.database import AbstractAsyncSession
 
@@ -48,13 +48,5 @@ class BaseORM:
             result = await db.session.execute(select(self.model).filter(self.model.id == id_obj))
         return result.scalars().first()
 
-    def serialize(self, obj: DeclarativeMeta | dict) -> dict:
-        if isinstance(obj, self.model):
-            result = dict()
-            for key, value in obj.__dict__.items():
-                if not isinstance(value, InstanceState):
-                    result[key] = str(value) if 'id' in key else value
-            return result
-        result = dict(obj)
-        result['id'] = str(result.get('id'))
-        return result
+    def serialize(self, obj: DeclarativeMeta | Row) -> dict:
+        return jsonable_encoder(obj)

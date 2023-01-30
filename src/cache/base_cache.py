@@ -21,5 +21,5 @@ class AbstractCache(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    async def delete_all(self, *args, **kwargs):
+    async def delete_many(self, *args, **kwargs):
         raise NotImplementedError

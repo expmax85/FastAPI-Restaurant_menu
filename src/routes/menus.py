@@ -47,7 +47,7 @@ async def get_menu(menu_id: UUID,
     return await menu_service.get(menu_id=menu_id)
 
 
-@router.patch('/{menu_id}', response_model=schemas.Menu, responses={
+@router.patch('/{menu_id}', response_model=schemas.UpdatedMenu, responses={
     404: {
         'model': schemas.MenuError,
         'description': 'Menu not found'
@@ -62,7 +62,7 @@ async def update_menu(menu_id: UUID, menu: schemas.MenuUpdate,
     return await menu_service.update(menu_id=menu_id, data=menu)
 
 
-@router.delete('/{menu_id}', response_model=schemas.Remove)
+@router.delete('/{menu_id}', response_model=schemas.MenuRemove)
 async def delete_menu(menu_id: UUID,
                       menu_service: Service = Depends(get_menu_service)):
     """

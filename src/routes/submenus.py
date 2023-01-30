@@ -2,7 +2,6 @@ from uuid import UUID
 
 from fastapi import APIRouter
 from fastapi import Depends
-from fastapi import HTTPException
 from fastapi import status
 
 from src.models import schemas
@@ -29,8 +28,6 @@ async def create_submenu(menu_id: UUID, submenu: schemas.SubMenuCreate,
     - **title**: each submenu must have a title
     - **description**: a long description
     """
-    if not await submenu_service.service_orm.check_exist_menu(menu_id):
-        raise HTTPException(detail='menu not found', status_code=404)
     return await submenu_service.create(data=submenu, menu_id=menu_id)
 
 
@@ -59,7 +56,7 @@ async def get_submenus(menu_id: UUID, skip: int = 0, limit: int = 100,
     return await submenu_service.get_list(menu_id=menu_id, skip=skip, limit=limit)
 
 
-@router.patch('/{submenu_id}', response_model=schemas.SubMenu, responses={
+@router.patch('/{submenu_id}', response_model=schemas.UpdatedSubMenu, responses={
     404: {
         'model': schemas.SubMenuError,
         'description': 'Submenu not found'
@@ -71,12 +68,10 @@ async def update_submenu(menu_id: UUID, submenu_id: UUID, submenu: schemas.SubMe
     """
     Update submenu
     """
-    if not await submenu_service.service_orm.check_exist_submenu(menu_id=menu_id, submenu_id=submenu_id):
-        raise HTTPException(detail='submenu not found', status_code=404)
     return await submenu_service.update(submenu_id=submenu_id, menu_id=menu_id, data=submenu)
 
 
-@router.delete('/{submenu_id}', response_model=schemas.Remove)
+@router.delete('/{submenu_id}', response_model=schemas.SubMenuRemove)
 async def delete_submenu(menu_id: UUID, submenu_id: UUID,
                          submenu_service: Service = Depends(get_submenu_service)):
     """

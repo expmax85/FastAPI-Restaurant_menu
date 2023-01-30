@@ -20,10 +20,11 @@ class SubMenuService(Service):
         self.all_cache_key = cache_key
 
     async def create(self, menu_id: UUID, data: schemas.SubMenuCreate) -> dict:
+        if not await self.service_orm.check_exist_menu(menu_id):
+            raise HTTPException(detail='menu not found', status_code=404)
         submenu = await self.service_orm.create(obj_in=data, menu_id=menu_id)
         result: dict = self.service_orm.serialize(submenu)
-        result['dishes_count'] = 0
-        await self.cache.set_cache(data=result, key=key_gen(menu_id, getattr(submenu, 'id')))
+        await self.cache.set_cache(data=result, key=key_gen(menu_id, result.get('id')))
         await self.cache.delete_cache(key=key_gen(menu_id, self.all_cache_key))
         await self.cache.delete_cache(key=key_gen('all_menus'))
         await self.cache.delete_cache(key=key_gen(menu_id))
@@ -59,7 +60,7 @@ class SubMenuService(Service):
         await self.service_orm.remove(id_obj=submenu_id)
         await self.cache.delete_cache(key=key_gen(menu_id, submenu_id))
         await self.cache.delete_cache(key=key_gen(menu_id, self.all_cache_key))
-        await self.cache.delete_all(key_parent=key_gen(menu_id))
+        await self.cache.delete_many(key_parent=key_gen(menu_id, submenu_id))
         return True
 
 

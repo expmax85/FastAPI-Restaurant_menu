@@ -23,7 +23,7 @@ class RedisCache(AbstractCache):
     async def delete_cache(self, key: str) -> None:
         await self.redis.delete(key)
 
-    async def delete_all(self, key_parent: str) -> None:
+    async def delete_many(self, key_parent: str) -> None:
         async for key in self.redis.scan_iter(f'{key_parent}*'):
             await self.redis.delete(key)
 
