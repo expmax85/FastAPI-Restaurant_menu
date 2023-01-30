@@ -6,6 +6,7 @@ from fastapi import HTTPException
 from src.cache import get_cache
 from src.cache import key_gen
 from src.cache.cache_service import AbstractCache
+from src.config import settings
 from src.database.actions import get_menu_orm
 from src.database.actions import MenuAction
 from src.models import Menu
@@ -14,7 +15,7 @@ from src.services.base_servises import Service
 
 
 class MenuService(Service):
-    def __init__(self, cache: AbstractCache, service_orm: MenuAction, cache_key: str = 'all_dishes'):
+    def __init__(self, cache: AbstractCache, service_orm: MenuAction, cache_key: str):
         self.cache = cache
         self.service_orm = service_orm
         self.all_cache_key = cache_key
@@ -61,4 +62,4 @@ class MenuService(Service):
 
 def get_menu_service(cache: AbstractCache = Depends(get_cache),
                      service_orm: MenuAction = Depends(get_menu_orm)) -> Service:
-    return MenuService(cache=cache, service_orm=service_orm)
+    return MenuService(cache=cache, service_orm=service_orm, cache_key=settings.App.MENU_CACHE_KEY)

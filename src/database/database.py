@@ -4,12 +4,11 @@ from abc import abstractmethod
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.ext.asyncio import create_async_engine
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
 
-from src.config import SQLALCHEMY_DATABASE_URL
+from src.config import settings
 
-engine = create_async_engine(SQLALCHEMY_DATABASE_URL)
-async_session = sessionmaker(bind=engine, class_=AsyncSession, expire_on_commit=False)
+engine = create_async_engine(settings.DATABASE_URL)
+async_session = AsyncSession(bind=engine, expire_on_commit=False)
 Base = declarative_base()
 
 
@@ -29,7 +28,7 @@ class AbstractAsyncSession(ABC):
 
 
 class SQLSession(AbstractAsyncSession):
-    def __init__(self, session: AsyncSession = async_session()) -> None:
+    def __init__(self, session: AsyncSession = async_session) -> None:
         self.session = session
 
     async def __aenter__(self) -> 'SQLSession':

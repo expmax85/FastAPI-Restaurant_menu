@@ -29,4 +29,4 @@ class RedisCache(AbstractCache):
 
 
 def get_cache() -> AbstractCache:
-    return RedisCache(f'redis://{settings.REDIS_HOST}')
+    return RedisCache(f'redis://{settings.Redis_conf.REDIS_HOST}')
