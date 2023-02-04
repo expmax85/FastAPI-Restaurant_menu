@@ -29,6 +29,38 @@ class ModelError(BaseModel):
     detail: str
 
 
+class SuccessInit(RemoveModel):
+    pass
+
+    class Config:
+        schema_extra = {"example": {"status": True, "message": "All data was created"}}
+
+
+class CreateTask(BaseModel):
+    task_id: str
+
+    class Config:
+        schema_extra = {"example": {"task_id": "6a814f27-4b6c-4887-854c-decab2fad7d5"}}
+
+
+class TaskStatus(BaseModel):
+    task_id: str
+    task_status: str
+    task_result: dict
+
+    class Config:
+        schema_extra = {
+            "example": {
+                "task_id": "6a814f27-4b6c-4887-854c-decab2fad7d5",
+                "task_status": "SUCCESS",
+                "task_result": {
+                    "message": "All menus was successfully imported",
+                    "file": "example.xls",
+                },
+            }
+        }
+
+
 # Menus schemas
 
 

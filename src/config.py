@@ -66,7 +66,8 @@ class Settings(BaseSettings):
         f"@{Database.DB_HOST}/{Database.DB_NAME}"
     )
     CACHE_URL: str = f"redis://{Redis.REDIS_HOST}"
-    BROKER_URL: str = f"amqp://{RabbitMQ.RABBIT_USER}:{RabbitMQ.RABBIT_PASSWORD}@{RabbitMQ.RABBIT_HOST}/"
+    CELERY_BROKER_URL: str = f"amqp://{RabbitMQ.RABBIT_USER}:{RabbitMQ.RABBIT_PASSWORD}@{RabbitMQ.RABBIT_HOST}/"
+    CELERY_BACKEND_URL: str = f"rpc://{Redis.REDIS_HOST}"
 
 
 settings = Settings()

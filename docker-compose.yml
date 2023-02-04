@@ -22,19 +22,26 @@ services:
           condition: service_healthy
       web_rabbitmq:
           condition: service_healthy
+      web_redis:
+        condition: service_healthy
     networks:
       - web_net
 
   worker:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
     command: celery -A src.celery.celery_app worker --loglevel=info
     volumes:
       - .:/code
+    environment:
+      CONFIG_FILE: ".env.main"
     networks:
       - web_net
     depends_on:
       - web_app
       - web_rabbitmq
+      - web_redis
 
   web_db:
     container_name: main_db
@@ -79,15 +86,12 @@ services:
 
   web_rabbitmq:
     container_name: main_rabbitmq
-    image: rabbitmq:latest
+    image: rabbitmq:3.11.8-alpine
     restart: always
-#    entrypoint:
-#      sh -s "rabbitmq-plugins enable rabbitmq_management"
     expose:
       - 5672
     ports:
-      - "5672:5672"
-      - "15672:15672"
+      - "${RABBIT_PORT}:5672"
     environment:
       CONFIG_FILE: ".env.main"
     networks:
