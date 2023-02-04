@@ -11,12 +11,12 @@ repos:
     -   id: check-merge-conflict  # проверяет файлы, содержащие конфликтные строки слияния.
 
 # Отсортировывает импорты в проекте
--   repo: https://github.com/pycqa/isort
-    rev: 5.10.1
-    hooks:
-      - id: isort
-        exclude: __init__.py
-        args: [ --profile, black, --filter-files ]
+#-   repo: https://github.com/pycqa/isort
+#    rev: 5.10.1
+#    hooks:
+#      - id: isort
+#        exclude: __init__.py
+#        args: [ --profile, black, --filter-files ]
 
 
 # Обновляет синтаксис Python кода в соответствии с последними версиями

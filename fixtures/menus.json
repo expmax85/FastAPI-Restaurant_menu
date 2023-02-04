@@ -1,0 +1,93 @@
+[
+  {
+    "title": "Меню",
+    "description": "Основное меню",
+    "submenus": [
+      {
+        "title": "Горячие закуски",
+        "description": "Наеться от души",
+        "dishes": [
+          {
+            "title": "Спаржа с луком из пармезана",
+            "description": "Сочетание несочетаемого",
+            "price": 1100.00
+          },
+          {
+            "title": "Креветки в тембуре",
+            "description": "Морское ассорти",
+            "price": 850.00
+          }
+        ]
+      },
+      {
+        "title": "Холодные закуски",
+        "description": "Перекусить перед едой",
+        "dishes": [
+          {
+            "title": "Мясное плато",
+            "description": "Хамон, Пармская ветчинаб артишокиб маслины",
+            "price": 2000.0
+          },
+          {
+            "title": "Сырное ассорти",
+            "description": "Камамбер, Пармезан, виноград, клубника, грецкий орех, мед",
+            "price": 1800.0
+          },
+          {
+            "title": "Лосось в соусе",
+            "description": "Трюфельный соус, лосось, гуакамоле",
+            "price": 1350.0
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "title": "Напитки",
+    "description": "Алкогольные напитки",
+    "submenus": [
+      {
+        "title": "Барное меню",
+        "description": "Для компании в кругу друзей",
+        "dishes": [
+          {
+            "title": "Johnny Walker Blue Label",
+            "description": "Шотландское виски",
+            "price": 800.00
+          },
+          {
+            "title": "CAMPO AZUL",
+            "description": "Мексиканская Текила",
+            "price": 650.00
+          },
+          {
+            "title": "Buzz Light",
+            "description": "Лучшее американское пиво",
+            "price": 200.00
+          }
+        ]
+      },
+      {
+        "title": "Винное меню",
+        "description": "Для романтического вечера",
+        "dishes": [
+          {
+            "title": "Prosecco Brut",
+            "description": "Итальянское игристое вино",
+            "price": 1000.00
+          },
+          {
+            "title": "Ned Sauvignon",
+            "description": "Белое вино из Новой Зеландии",
+            "price": 950.00
+          },
+          {
+            "title": "Vihno Verde Rose",
+            "description": "Португальское красное вино",
+            "price": 800.00
+          }
+        ]
+      }
+    ]
+  }
+]

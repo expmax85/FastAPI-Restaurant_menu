@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from starlette import status
 
 from src.config import settings
@@ -30,5 +30,8 @@ async def generate_test_data():
     """
     Service route for generating test menus, submenus and dishes data
     """
-    await init_test_data_db()
+    try:
+        await init_test_data_db()
+    except Exception:
+        raise HTTPException(detail="Wrong data", status_code=status.HTTP_406_NOT_ACCEPTABLE)
     return {"status": True, "message": "All data was created"}
