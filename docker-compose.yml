@@ -20,8 +20,21 @@ services:
     depends_on:
       web_db:
           condition: service_healthy
+      web_rabbitmq:
+          condition: service_healthy
     networks:
       - web_net
+
+  worker:
+    build: .
+    command: celery -A src.celery.celery_app worker --loglevel=info
+    volumes:
+      - .:/code
+    networks:
+      - web_net
+    depends_on:
+      - web_app
+      - web_rabbitmq
 
   web_db:
     container_name: main_db
@@ -60,6 +73,27 @@ services:
       - web_net
     healthcheck:
         test: [ "CMD", "redis-cli","ping" ]
+        interval: 10s
+        timeout: 10s
+        retries: 30
+
+  web_rabbitmq:
+    container_name: main_rabbitmq
+    image: rabbitmq:latest
+    restart: always
+#    entrypoint:
+#      sh -s "rabbitmq-plugins enable rabbitmq_management"
+    expose:
+      - 5672
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      CONFIG_FILE: ".env.main"
+    networks:
+      - web_net
+    healthcheck:
+        test: rabbitmq-diagnostics -q ping
         interval: 10s
         timeout: 10s
         retries: 30

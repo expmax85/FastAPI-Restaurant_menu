@@ -1,39 +1,49 @@
 repos:
 -   repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.4.0
+    rev: v4.2.0
     hooks:
-    -   id: trailing-whitespace
-    -   id: end-of-file-fixer
-    -   id: check-yaml
-    -   id: check-case-conflict
-    -   id: check-merge-conflict
-    -   id: double-quote-string-fixer
+    -   id: trailing-whitespace  # убирает лишние пробелы
+    -   id: check-added-large-files  # проверяет тяжелые файлы на изменения
+    -   id: end-of-file-fixer  # добавляет пустую строку в конце файла
+    -   id: check-yaml  # проверяет синтаксис .yaml файлов
+    -   id: check-json  # проверяет синтаксис .json файлов
+    -   id: check-case-conflict  # проверяет файлы, которые могут конфликтовать в файловых системах без учета регистра.
+    -   id: check-merge-conflict  # проверяет файлы, содержащие конфликтные строки слияния.
 
+# Отсортировывает импорты в проекте
+-   repo: https://github.com/pycqa/isort
+    rev: 5.10.1
+    hooks:
+      - id: isort
+        exclude: __init__.py
+        args: [ --profile, black, --filter-files ]
+
+
+# Обновляет синтаксис Python кода в соответствии с последними версиями
 -   repo: https://github.com/asottile/pyupgrade
-    rev: v3.3.1
+    rev: v2.31.1
     hooks:
     -   id: pyupgrade
-        args: [--py38-plus]
+        args: [--py310-plus]
 
--   repo: https://github.com/pre-commit/mirrors-autopep8
-    rev: v2.0.1
-    hooks:
-    -   id: autopep8
 
+# Сканер стилистических ошибок, нарушающие договоренности PEP8
 -   repo: https://github.com/PyCQA/flake8
     rev: 6.0.0
     hooks:
     -   id: flake8
         exclude: __init__.py
-        args: ["--ignore=E501,E126"]
+        args: [ "--ignore=F821", "--max-line-length=120" ]
 
+# Проверка статических типов с помощью mypy
 -   repo: https://github.com/pre-commit/mirrors-mypy
     rev: v0.991
     hooks:
     -   id: mypy
-        args: [--no-strict-optional, --ignore-missing-imports]
 
--   repo: https://github.com/asottile/reorder_python_imports
-    rev: v3.9.0
+# Форматирует код под PEP8 c помощью black
+-   repo: https://github.com/psf/black
+    rev: stable
     hooks:
-    -   id: reorder-python-imports
+    - id: black
+      language_version: python3.10

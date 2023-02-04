@@ -3,26 +3,30 @@ from pathlib import Path
 
 from pydantic import BaseSettings
 
-
-BASE_DIR = Path(__file__).parent.parent / 'conf'
-env_path = os.path.join(BASE_DIR, os.getenv('CONFIG_FILE', '.env.default'))
+BASE_DIR = Path(__file__).parent.parent
+if os.getenv("CONFIG_FILE") and os.path.exists(
+    os.path.join(BASE_DIR, os.getenv("CONFIG_FILE", ".env.default"))
+):
+    env_path = os.path.join(BASE_DIR, os.getenv("CONFIG_FILE", ".env.default"))
+else:
+    env_path = os.path.join(BASE_DIR, "conf", os.getenv("CONFIG_FILE", ".env.default"))
 
 
 class App(BaseSettings):
     DEBUG: bool = False
-    TITLE: str = 'FastAPI'
-    DESCRIPTION: str = ''
-    PREFIX: str = '/api/v1'
-    VERSION: str = '1.0'
-    MENU_CACHE_KEY: str = 'all_menus'
-    SUBMENU_CACHE_KEY: str = 'all_submenus'
-    DISH_CACHE_KEY: str = 'all_dishes'
+    TITLE: str = "FastAPI"
+    DESCRIPTION: str = ""
+    PREFIX: str = "/api/v1"
+    VERSION: str = "1.0"
+    MENU_CACHE_KEY: str = "all_menus"
+    SUBMENU_CACHE_KEY: str = "all_submenus"
+    DISH_CACHE_KEY: str = "all_dishes"
 
     class Config:
         env_file = env_path
 
 
-class DB_conf(BaseSettings):
+class DBconfig(BaseSettings):
     DB_NAME: str
     DB_HOST: str
     DB_USER: str
@@ -30,26 +34,39 @@ class DB_conf(BaseSettings):
     DB_PORT: int
 
     class Config:
-        env_file = env_path
+        env_file: str = env_path
 
 
-class Redis_conf(BaseSettings):
+class Redisconfig(BaseSettings):
     REDIS_HOST: str
     REDIS_PORT: int
 
     class Config:
-        env_file = env_path
+        env_file: str = env_path
+
+
+class RabbitMQ(BaseSettings):
+    RABBIT_HOST: str
+    RABBIT_PORT: int
+    RABBIT_USER: str = "guest"
+    RABBIT_PASSWORD: str = "guest"
+
+    class Config:
+        env_file: str = env_path
 
 
 class Settings(BaseSettings):
     App: App = App()
-    Database: DB_conf = DB_conf()
-    Redis_conf: Redis_conf = Redis_conf()
-    DATABASE_URL: str = f'postgresql+asyncpg://{Database.DB_USER}:{Database.DB_PASSWORD}' \
-                        f'@{Database.DB_HOST}/{Database.DB_NAME}'
+    Database: DBconfig = DBconfig()
+    Redis: Redisconfig = Redisconfig()
+    RabbitMQ: RabbitMQ = RabbitMQ()
 
-    class Config:
-        env_file = env_path
+    DATABASE_URL: str = (
+        f"postgresql+asyncpg://{Database.DB_USER}:{Database.DB_PASSWORD}"
+        f"@{Database.DB_HOST}/{Database.DB_NAME}"
+    )
+    CACHE_URL: str = f"redis://{Redis.REDIS_HOST}"
+    BROKER_URL: str = f"amqp://{RabbitMQ.RABBIT_USER}:{RabbitMQ.RABBIT_PASSWORD}@{RabbitMQ.RABBIT_HOST}/"
 
 
 settings = Settings()

@@ -1,9 +1,7 @@
-from abc import ABC
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 
 
 class Service(ABC):
-
     @abstractmethod
     def __init__(self, *args, **kwargs):
         self.service_orm = None
@@ -27,4 +25,14 @@ class Service(ABC):
 
     @abstractmethod
     async def remove(self, *args, **kwargs):
+        raise NotImplementedError
+
+
+class AbstractImportClass(ABC):
+    @abstractmethod
+    def __init__(self, *args, **kwargs):
+        raise NotImplementedError
+
+    @abstractmethod
+    def make_import(self, *args, **kwargs):
         raise NotImplementedError

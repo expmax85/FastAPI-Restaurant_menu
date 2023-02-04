@@ -1,19 +1,17 @@
 from uuid import UUID
 
-from fastapi import APIRouter
-from fastapi import Depends
-from fastapi import status
+from fastapi import APIRouter, Depends, status
 
 from src.models import schemas
-from src.services import get_menu_service
-from src.services import Service
+from src.services import Service, get_menu_service
 
-router = APIRouter(prefix='/menus', tags=['Menus'])
+router = APIRouter(prefix="/menus", tags=["Menus"])
 
 
-@router.post('/', response_model=schemas.Menu, status_code=status.HTTP_201_CREATED)
-async def create_menu(menu: schemas.MenuCreate,
-                      menu_service: Service = Depends(get_menu_service)):
+@router.post("/", response_model=schemas.Menu, status_code=status.HTTP_201_CREATED)
+async def create_menu(
+    menu: schemas.MenuCreate, menu_service: Service = Depends(get_menu_service)
+):
     """
     Create menu with all the information:
 
@@ -23,52 +21,50 @@ async def create_menu(menu: schemas.MenuCreate,
     return await menu_service.create(data=menu)
 
 
-@router.get('/', response_model=list[schemas.Menu])
-async def get_menus(skip: int = 0, limit: int = 100,
-                    menu_service: Service = Depends(get_menu_service)):
+@router.get("/", response_model=list[schemas.Menu])
+async def get_menus(
+    skip: int = 0, limit: int = 100, menu_service: Service = Depends(get_menu_service)
+):
     """
     Get all menus
     """
     return await menu_service.get_list(skip=skip, limit=limit)
 
 
-@router.get('/{menu_id}', response_model=schemas.Menu, responses={
-    404: {
-        'model': schemas.MenuError,
-        'description': 'Menu not found'
-    }
-}
+@router.get(
+    "/{menu_id}",
+    response_model=schemas.Menu,
+    responses={404: {"model": schemas.MenuError, "description": "Menu not found"}},
 )
-async def get_menu(menu_id: UUID,
-                   menu_service: Service = Depends(get_menu_service)):
+async def get_menu(menu_id: UUID, menu_service: Service = Depends(get_menu_service)):
     """
     Get menu by id
     """
     return await menu_service.get(menu_id=menu_id)
 
 
-@router.patch('/{menu_id}', response_model=schemas.UpdatedMenu, responses={
-    404: {
-        'model': schemas.MenuError,
-        'description': 'Menu not found'
-    }
-}
+@router.patch(
+    "/{menu_id}",
+    response_model=schemas.UpdatedMenu,
+    responses={404: {"model": schemas.MenuError, "description": "Menu not found"}},
 )
-async def update_menu(menu_id: UUID, menu: schemas.MenuUpdate,
-                      menu_service: Service = Depends(get_menu_service)):
+async def update_menu(
+    menu_id: UUID,
+    menu: schemas.MenuUpdate,
+    menu_service: Service = Depends(get_menu_service),
+):
     """
     Update menu and return updating instance
     """
     return await menu_service.update(menu_id=menu_id, data=menu)
 
 
-@router.delete('/{menu_id}', response_model=schemas.MenuRemove)
-async def delete_menu(menu_id: UUID,
-                      menu_service: Service = Depends(get_menu_service)):
+@router.delete("/{menu_id}", response_model=schemas.MenuRemove)
+async def delete_menu(menu_id: UUID, menu_service: Service = Depends(get_menu_service)):
     """
     Remove menu
     """
     return {
-        'status': await menu_service.remove(menu_id=menu_id),
-        'message': 'The menu has been deleted',
+        "status": await menu_service.remove(menu_id=menu_id),
+        "message": "The menu has been deleted",
     }

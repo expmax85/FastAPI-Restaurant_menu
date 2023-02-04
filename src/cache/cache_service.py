@@ -7,7 +7,6 @@ from src.config import settings
 
 
 class RedisCache(AbstractCache):
-
     def __init__(self, redis_url: str) -> None:
         self.redis = aioredis.from_url(redis_url)
 
@@ -24,9 +23,9 @@ class RedisCache(AbstractCache):
         await self.redis.delete(key)
 
     async def delete_many(self, key_parent: str) -> None:
-        async for key in self.redis.scan_iter(f'{key_parent}*'):
+        async for key in self.redis.scan_iter(f"{key_parent}*"):
             await self.redis.delete(key)
 
 
 def get_cache() -> AbstractCache:
-    return RedisCache(f'redis://{settings.Redis_conf.REDIS_HOST}')
+    return RedisCache(settings.CACHE_URL)

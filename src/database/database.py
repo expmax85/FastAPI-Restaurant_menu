@@ -1,8 +1,6 @@
-from abc import ABC
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.ext.asyncio import create_async_engine
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.ext.declarative import declarative_base
 
 from src.config import settings
@@ -13,7 +11,6 @@ Base = declarative_base()
 
 
 class AbstractAsyncSession(ABC):
-
     @abstractmethod
     def __init__(self, session: AsyncSession):
         self.session = session
@@ -31,7 +28,7 @@ class SQLSession(AbstractAsyncSession):
     def __init__(self, session: AsyncSession = async_session) -> None:
         self.session = session
 
-    async def __aenter__(self) -> 'SQLSession':
+    async def __aenter__(self) -> "SQLSession":
         return self
 
     async def __aexit__(self, exc_type, exc_value, traceback) -> None:

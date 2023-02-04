@@ -11,7 +11,6 @@ from src.database.database import AbstractAsyncSession
 
 
 class BaseORM:
-
     @abstractmethod
     def __init__(self, model: DeclarativeMeta, db: AbstractAsyncSession):
         self.model = model
@@ -40,12 +39,16 @@ class BaseORM:
 
     async def get_all(self, skip: int = 0, limit: int = 100) -> list[DeclarativeMeta]:
         async with self.db as db:
-            result = await db.session.execute(select(self.model).offset(skip).limit(limit))
+            result = await db.session.execute(
+                select(self.model).offset(skip).limit(limit)
+            )
         return result.scalars().all()
 
     async def get(self, id_obj: UUID) -> DeclarativeMeta | None:
         async with self.db as db:
-            result = await db.session.execute(select(self.model).filter(self.model.id == id_obj))
+            result = await db.session.execute(
+                select(self.model).filter(self.model.id == id_obj)
+            )
         return result.scalars().first()
 
     def serialize(self, obj: DeclarativeMeta | Row) -> dict:
