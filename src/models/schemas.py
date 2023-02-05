@@ -45,18 +45,13 @@ class CreateTask(BaseModel):
 
 class TaskStatus(BaseModel):
     task_id: str
-    task_status: str
-    task_result: dict
+    status: str
 
     class Config:
         schema_extra = {
             "example": {
                 "task_id": "6a814f27-4b6c-4887-854c-decab2fad7d5",
-                "task_status": "SUCCESS",
-                "task_result": {
-                    "message": "All menus was successfully imported",
-                    "file": "example.xls",
-                },
+                "status": "PENDING",
             }
         }
 

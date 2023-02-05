@@ -4,7 +4,8 @@ from pathlib import Path
 from pydantic import BaseSettings
 
 BASE_DIR = Path(__file__).parent.parent
-FIXTURES_DIR = os.path.join(BASE_DIR, 'fixtures')
+FIXTURES_DIR = os.path.join(BASE_DIR, "fixtures")
+UPLOADS_DIR = os.path.join(BASE_DIR, "uploads")
 
 if os.getenv("CONFIG_FILE") and os.path.exists(
     os.path.join(BASE_DIR, os.getenv("CONFIG_FILE", ".env.default"))

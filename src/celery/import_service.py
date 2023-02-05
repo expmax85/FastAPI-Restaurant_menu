@@ -1,7 +1,10 @@
+import os
+
 from openpyxl.styles import Border, Font, NamedStyle, Side
 from openpyxl.workbook import Workbook
 from openpyxl.worksheet.worksheet import Worksheet
 
+from src.config import UPLOADS_DIR
 from src.services.base_servises import AbstractImportClass
 
 
@@ -10,17 +13,15 @@ class ImportXLS(AbstractImportClass):
         self.filename = ".".join([filename, "xls"])
         self.sheet_name = sheet_name
 
-    def make_import(self, data) -> dict:
+    def make_import(self, data) -> str:
         wb = Workbook()
         ws = wb.active
         ws.title = self.sheet_name
         rows = self._set_xls_data(data, ws)
         self._set_table_style(ws, rows)
-        wb.save(self.filename)
-        return {
-            "message": "All menus was successfully imported",
-            "file": self.filename,
-        }
+        path = os.path.join(UPLOADS_DIR, self.filename)
+        wb.save(path)
+        return path
 
     def _set_table_style(self, ws: Worksheet, count_rows: int) -> None:
         ws.column_dimensions["A"].width = 5

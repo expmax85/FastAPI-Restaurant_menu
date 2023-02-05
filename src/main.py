@@ -1,9 +1,7 @@
-from fastapi import FastAPI, HTTPException
-from starlette import status
+from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 
 from src.config import settings
-from src.database.init_data_db import init_test_data_db
-from src.models import schemas
 from src.routes import dishes, menus, submenus, tasks
 
 app = FastAPI(
@@ -19,19 +17,4 @@ app.include_router(submenus.router, prefix=settings.App.PREFIX)
 app.include_router(dishes.router, prefix=settings.App.PREFIX)
 app.include_router(tasks.router, prefix=settings.App.PREFIX)
 
-
-@app.get(
-    "/generate",
-    response_model=schemas.SuccessInit,
-    status_code=status.HTTP_200_OK,
-    tags=["Generate data"],
-)
-async def generate_test_data():
-    """
-    Service route for generating test menus, submenus and dishes data
-    """
-    try:
-        await init_test_data_db()
-    except Exception:
-        raise HTTPException(detail="Wrong data", status_code=status.HTTP_406_NOT_ACCEPTABLE)
-    return {"status": True, "message": "All data was created"}
+app.mount("/uploads", StaticFiles(directory="uploads"))
