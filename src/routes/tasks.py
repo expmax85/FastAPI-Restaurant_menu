@@ -54,7 +54,7 @@ async def get_task_status(task_id: str):
         filename = task_result.result.split("/")[-1]
         return FileResponse(
             path=task_result.result,
-            media_type="application/octet-stream",
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             filename=filename,
         )
     return {
