@@ -10,7 +10,7 @@ from src.services.base_servises import AbstractImportClass
 
 class ImportXLS(AbstractImportClass):
     def __init__(self, filename: str = "Result", sheet_name: str = "Menus") -> None:
-        self.filename = ".".join([filename, "xls"])
+        self.filename = ".".join([filename, "xlsx"])
         self.sheet_name = sheet_name
 
     def make_import(self, data) -> str:

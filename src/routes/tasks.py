@@ -34,8 +34,10 @@ async def import_from_db_to_file(
     response_class=FileResponse,
     responses={
         202: {
-            "content": {"application/octet-stream": {}},
-            "description": "Return the xls file.",
+            "content": {
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {}
+            },
+            "description": "Return the xlsx file.",
         },
         400: {"model": schemas.TaskStatus, "description": "File not found"},
     },
